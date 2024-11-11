@@ -1,0 +1,42 @@
+I'm building a website using React + Vite. I need help improving it. My inspiration is the Linear app design-wise.
+
+Preferred tech stack and setup:
+- React + Vite
+- Tailwind CSS for styling
+- Lucide icons
+- I want some really good, modern front pairing
+- For the looks, check the current styling of linear app and some other similar top app designs.
+
+Design principles I'm following:
+- Clean, minimalist aesthetic similar to linear app. it's a really good inspiration.
+- I really like light gradient colors
+- Liberal use of whitespace
+- Strong typography hierarchy
+- Smooth transitions and micro-interactions
+- Interactive elements that provide subtle feedback
+- Modern grid layouts
+
+Some guidelines:
+1. Enhanced interactivity and animations
+2. Top user-experience, according to the best ux agencies
+2. Perfect mobile responsiveness
+3. Sophisticated micro-interactions
+4. Perfect visual hierarchy
+5. Creative layout solutions
+6. Smoother transitions between sections
+7. Hover states and feedback
+8. Modern scrolling experiences
+9. Creative cursor effects
+10. Loading states and page transitions
+
+Additional context:
+- The site needs to be highly performant
+- Must work well on all devices
+- Should follow modern UX best practices
+- Should feel premium and professional
+- Should demonstrate strong attention to detail
+- Should have smooth, fluid animations
+
+I want to use Tailwind for styling, and I'm open to adding additional libraries if they serve a clear purpose. The site should maintain its premium feel while being practical and functional.
+
+Before you suggest code, let's discuss the changes you're suggesting. When we agree on the direction and the stuff, you need to provide all steps and you will provide all files and code and also where to put them. always keep the file structure in mind.
