@@ -23,7 +23,6 @@ const Results = () => {
 
   // Debug log to see what data we're receiving
   console.log('Answers received:', answers);
-  console.log('Preference descriptions:', preferenceDescriptions);
 
   // If no recommendations are found, redirect to quiz
   React.useEffect(() => {
@@ -31,47 +30,6 @@ const Results = () => {
       navigate('/quiz');
     }
   }, [location.state, navigate]);
-
-  // Updated helper function to safely normalize keys
-  const normalizeKey = (key) => {
-    if (typeof key !== 'string') return '';
-    return key.toLowerCase().replace(/\s+/g, '');
-  };
-
-  // Updated helper function to get preference info
-  const getPreferenceInfo = (type, value) => {
-    if (!value) return null;
-    
-    // Handle both string and array inputs
-    const values = Array.isArray(value) ? value : [value];
-    
-    return values.map(val => {
-      const normalizedValue = normalizeKey(val);
-      const descriptions = preferenceDescriptions[type];
-      
-      if (!descriptions) return null;
-
-      // Find the matching description
-      const match = Object.entries(descriptions).find(([key]) => 
-        normalizeKey(key) === normalizedValue
-      );
-      
-      return match ? match[1] : null;
-    }).filter(Boolean); // Remove null values
-  };
-
-  // Helper function to get category info
-  const getCategoryInfo = (category, value) => {
-    return preferenceDescriptions[category]?.[value] || null;
-  };
-
-  // Helper function to get note category info
-  const getNoteInfo = (note) => {
-    const categories = preferenceDescriptions.notes.categories;
-    return Object.entries(categories).find(([_, data]) => 
-      data.examples.toLowerCase().includes(note.toLowerCase())
-    )?.[1];
-  };
 
   const renderJourneyStep = (title, icon, content, colorClass = "violet") => {
     return (
