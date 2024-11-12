@@ -11,6 +11,7 @@ import {
 import PerfumeCard from '../components/results/PerfumeCard';
 import { preferenceDetails as educationalPreferenceDetails } from "../data/preferenceDetails";
 import PreferenceTooltip from '../components/results/PreferenceTooltip';
+import EmailCollector from '../components/EmailCollector';
 
 
 const Results = () => {
@@ -414,6 +415,15 @@ const Results = () => {
                 </motion.div>
               ))}
               </div>
+
+              {/* Email Collector */}
+              <div className="mt-12">
+                <p className="text-sm text-neutral-400 text-center mb-4">
+                  Be the first to know when samples are available
+                </p>
+                <EmailCollector />
+              </div>
+
             </div>
           </div>
         </div>
