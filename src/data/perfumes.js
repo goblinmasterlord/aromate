@@ -1145,5 +1145,230 @@ export const perfumes = [
       },
       tags: ["vanilla", "warm", "cozy", "elegant"],
       rating: 4.4
+    },
+    {
+      id: 47,
+      name: "Silver Mountain Water",
+      brand: "Creed",
+      type: "fresh",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 310.00,
+      size: "100ml",
+      year: 1995,
+      season: ["spring", "summer"],
+      occasion: ["casual", "day"],
+      notes: {
+        top: ["bergamot", "mandarin orange"],
+        middle: ["green tea", "black currant"],
+        base: ["musk", "sandalwood"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 6
+      },
+      tags: ["fresh", "citrus", "clean"],
+      rating: 4.5
+    },
+    {
+      id: 48,
+      name: "Reflection Man",
+      brand: "Amouage",
+      type: "woody",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 290.00,
+      size: "100ml",
+      year: 2007,
+      season: ["spring", "summer"],
+      occasion: ["business", "special"],
+      notes: {
+        top: ["rosemary", "pink pepper"],
+        middle: ["orris root", "neroli"],
+        base: ["sandalwood", "cedar"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["woody", "fresh", "elegant"],
+      rating: 4.6
+    },
+    {
+      id: 49,
+      name: "Noir de Noir",
+      brand: "Tom Ford",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 340.00,
+      size: "100ml",
+      year: 2007,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special"],
+      notes: {
+        top: ["saffron", "black rose"],
+        middle: ["black truffle", "vanilla"],
+        base: ["patchouli", "oud wood"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["oriental", "luxurious", "warm"],
+      rating: 4.7
+    },
+    {
+      id: 50,
+      name: "Heritage",
+      brand: "Guerlain",
+      type: "woody",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 100.00,
+      size: "100ml",
+      year: 1992,
+      season: ["fall", "winter"],
+      occasion: ["business", "formal"],
+      notes: {
+        top: ["lavender", "bergamot"],
+        middle: ["patchouli", "pepper"],
+        base: ["sandalwood", "amber"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["woody", "spicy", "classic"],
+      rating: 4.5
+    },
+    {
+      id: 51,
+      name: "Coco Mademoiselle",
+      brand: "Chanel",
+      type: "floral",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 130.00,
+      size: "100ml",
+      year: 2001,
+      season: ["spring", "summer"],
+      occasion: ["daily", "evening"],
+      notes: {
+        top: ["orange", "bergamot"],
+        middle: ["rose", "jasmine"],
+        base: ["vanilla", "patchouli"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 6
+      },
+      tags: ["floral", "elegant", "fresh"],
+      rating: 4.6
+    },
+    {
+      id: 53,
+      name: "Aqua di Gio",
+      brand: "Giorgio Armani",
+      type: "fresh",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 85.00,
+      size: "100ml",
+      year: 1996,
+      season: ["spring", "summer"],
+      occasion: ["casual", "beach"],
+      notes: {
+        top: ["lime", "lemon"],
+        middle: ["jasmine", "calone"],
+        base: ["cedar", "musk"]
+      },
+      characteristics: {
+        longevity: 6,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["fresh", "aquatic", "clean"],
+      rating: 4.4
+    },
+    {
+      id: 53,
+      name: "Opium",
+      brand: "Yves Saint Laurent",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 120.00,
+      size: "100ml",
+      year: 1977,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special"],
+      notes: {
+        top: ["cinnamon", "pepper"],
+        middle: ["jasmine", "rose"],
+        base: ["vanilla", "patchouli"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["oriental", "spicy", "classic"],
+      rating: 4.6
+    },
+    {
+      id: 54,
+      name: "L'Homme",
+      brand: "Yves Saint Laurent",
+      type: "woody",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 100.00,
+      size: "100ml",
+      year: 2006,
+      season: ["spring", "fall"],
+      occasion: ["office", "casual"],
+      notes: {
+        top: ["ginger", "bergamot"],
+        middle: ["violet", "basil"],
+        base: ["cedar", "vetiver"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 6
+      },
+      tags: ["woody", "fresh", "modern"],
+      rating: 4.5
+    },
+    {
+      id: 55,
+      name: "Chance Eau Tendre",
+      brand: "Chanel",
+      type: "floral",
+      concentration: "Eau de Toilette",
+      gender: "feminine",
+      price: 120.00,
+      size: "100ml",
+      year: 2010,
+      season: ["spring", "summer"],
+      occasion: ["daily", "casual"],
+      notes: {
+        top: ["quince", "grapefruit"],
+        middle: ["hyacinth", "jasmine"],
+        base: ["amber", "cedar"]
+      },
+      characteristics: {
+        longevity: 6,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["floral", "fresh", "light"],
+      rating: 4.3
     }
   ];

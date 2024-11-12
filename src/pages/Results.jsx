@@ -9,6 +9,7 @@ import {
   Flower2, Leaf, Briefcase, Flame, CloudSun, Palette
 } from 'lucide-react';
 import PerfumeCard from '../components/results/PerfumeCard';
+import { preferenceDetails as educationalPreferenceDetails } from "../data/preferenceDetails";
 
 
 const Results = () => {
@@ -122,6 +123,73 @@ const Results = () => {
   const availableSteps = preferenceSteps.filter(step => 
     answers[step.key] !== undefined && answers[step.key] !== null
   );
+
+  const getEducationalContent = (step, value) => {
+    if (step.key === 'notes') {
+      return "Your unique combination of liked and disliked notes creates a personalized scent profile that's truly yours";
+    }
+    return preferenceDetails[step.key]?.educational[value] || 
+           "Discover how this preference shapes your perfect fragrance";
+  };
+
+  const renderStepContent = (step, answers) => {
+    if (step.key === 'notes' && answers.notes) {
+      return (
+        <div className="space-y-4">
+          {answers.notes.liked?.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-violet-400 mb-2">Liked Notes</h4>
+              <div className="flex flex-wrap gap-2">
+                {answers.notes.liked.map(note => (
+                  <motion.span
+                    key={note}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="px-2 py-1 text-xs rounded-full 
+                             bg-violet-400/10 text-violet-300"
+                  >
+                    {note}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          )}
+          {answers.notes.disliked?.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-neutral-400 mb-2">Disliked Notes</h4>
+              <div className="flex flex-wrap gap-2">
+                {answers.notes.disliked.map(note => (
+                  <motion.span
+                    key={note}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="px-2 py-1 text-xs rounded-full 
+                             bg-neutral-400/10 text-neutral-300"
+                  >
+                    {note}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // For other steps, show educational content
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-neutral-300">
+          {getEducationalContent(step, answers[step.key])}
+        </p>
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-grow bg-gradient-to-r from-violet-400/20 to-transparent" />
+          <span className="text-xs text-violet-400">Did you know?</span>
+          <div className="h-px flex-grow bg-gradient-to-l from-violet-400/20 to-transparent" />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <motion.div
@@ -256,46 +324,7 @@ const Results = () => {
                       className="overflow-hidden"
                     >
                       <div className="mt-2 p-4 rounded-xl bg-background-800/30 backdrop-blur-sm">
-                        {step.key === 'notes' && answers.notes && (
-                          <div className="space-y-4">
-                            {answers.notes.liked?.length > 0 && (
-                              <div>
-                                <h4 className="text-sm font-medium text-violet-400 mb-2">Liked Notes</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {answers.notes.liked.map(note => (
-                                    <motion.span
-                                      key={note}
-                                      initial={{ opacity: 0, scale: 0.8 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      className="px-2 py-1 text-xs rounded-full 
-                                               bg-violet-400/10 text-violet-300"
-                                    >
-                                      {note}
-                                    </motion.span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {answers.notes.disliked?.length > 0 && (
-                              <div>
-                                <h4 className="text-sm font-medium text-neutral-400 mb-2">Disliked Notes</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {answers.notes.disliked.map(note => (
-                                    <motion.span
-                                      key={note}
-                                      initial={{ opacity: 0, scale: 0.8 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      className="px-2 py-1 text-xs rounded-full 
-                                               bg-neutral-400/10 text-neutral-300"
-                                    >
-                                      {note}
-                                    </motion.span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {renderStepContent(step, answers)}
                       </div>
                     </motion.div>
                   )}
