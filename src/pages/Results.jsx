@@ -1,16 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, Clock, Wind, Droplets, 
   Sun, Heart, Compass, Gem, 
   ArrowDownCircle, TestTubes, Package, Beaker, 
   Calendar, 
-  Target, 
-  Fingerprint, 
-  ThumbsUp, 
-  ThumbsDown, 
-  ArrowRight 
+  Flower2, Leaf, Briefcase, Flame, CloudSun, Palette
 } from 'lucide-react';
 import PerfumeCard from '../components/results/PerfumeCard';
 
@@ -31,46 +27,101 @@ const Results = () => {
     }
   }, [location.state, navigate]);
 
-  const renderJourneyStep = (title, icon, content, colorClass = "violet") => {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="relative"
-      >
-        {/* Timeline Icon */}
-        <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <div className={`w-14 h-14 rounded-full bg-background-800 
-                        border-2 border-${colorClass}-400/30 p-0.5`}>
-            <div className={`w-full h-full rounded-full bg-${colorClass}-400/10 
-                          flex items-center justify-center backdrop-blur-sm`}>
-              {icon}
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="relative group">
-          <div className={`absolute inset-0 bg-gradient-to-r from-${colorClass}-400/10 
-                        via-${colorClass}-400/5 to-${colorClass}-400/10 
-                        rounded-2xl blur-xl opacity-0 group-hover:opacity-100 
-                        transition-opacity duration-500`} />
-          <div className={`relative p-8 rounded-2xl bg-background-800/50 
-                        border border-${colorClass}-400/20 backdrop-blur-sm
-                        hover:border-${colorClass}-400/40 transition-all duration-300`}>
-            <h3 className="text-lg font-medium mb-6">
-              <span className={`bg-gradient-to-r from-${colorClass}-400 
-                            to-${colorClass}-300 bg-clip-text text-transparent`}>
-                {title}
-              </span>
-            </h3>
-            {content}
-          </div>
-        </div>
-      </motion.div>
-    );
+  // Enhanced preference details with more specific info
+  const preferenceDetails = {
+    type: {
+      icon: <Palette className="w-4 h-4" />,
+      title: "Fragrance Type",
+      description: "Your preferred fragrance family"
+    },
+    season: {
+      icon: <CloudSun className="w-4 h-4" />,
+      title: "Season",
+      description: "When to wear"
+    },
+    occasion: {
+      icon: <Calendar className="w-4 h-4" />,
+      title: "Occasion",
+      description: "Perfect moments"
+    },
+    notes: {
+      icon: <Flower2 className="w-4 h-4" />,
+      title: "Notes",
+      description: "Your signature scents",
+      // Special handling for notes
+      formatValue: (notes) => ({
+        liked: notes.liked || [],
+        disliked: notes.disliked || []
+      })
+    }
   };
+
+  const PreferenceChip = ({ detail, value, onClick }) => (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative px-4 py-2 rounded-xl bg-background-800/50 
+                 border border-violet-400/10 hover:border-violet-400/20 
+                 transition-colors duration-300"
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-violet-400 group-hover:text-violet-300 transition-colors">
+          {detail.icon}
+        </span>
+        <span className="text-sm font-medium text-white">
+          {Array.isArray(value) ? value.join(', ') : value}
+        </span>
+      </div>
+    </motion.button>
+  );
+
+  const [activeStep, setActiveStep] = useState(null);
+
+  const preferenceSteps = [
+    {
+      key: 'type',
+      icon: <Palette className="w-4 h-4" />,
+      title: "Fragrance Type",
+      color: "from-violet-400 to-fuchsia-400",
+      insight: "Your foundation: elegant and sophisticated",
+      getValue: (answers) => answers.type || 'Not specified'
+    },
+    {
+      key: 'season',
+      icon: <CloudSun className="w-4 h-4" />,
+      title: "Perfect Season",
+      color: "from-fuchsia-400 to-amber-400",
+      insight: "When your fragrance shines brightest",
+      getValue: (answers) => answers.season || 'Not specified'
+    },
+    {
+      key: 'occasion',
+      icon: <Calendar className="w-4 h-4" />,
+      title: "Ideal Moments",
+      color: "from-amber-400 to-violet-400",
+      insight: "Crafted for your special times",
+      getValue: (answers) => Array.isArray(answers.occasion) ? 
+        answers.occasion.join(', ') : 
+        (answers.occasion || 'Not specified')
+    },
+    {
+      key: 'notes',
+      icon: <Flower2 className="w-4 h-4" />,
+      title: "Signature Notes",
+      color: "from-violet-400 to-fuchsia-400",
+      insight: "The essence of your unique taste",
+      getValue: (answers) => {
+        const notes = answers.notes || { liked: [], disliked: [] };
+        return `${notes.liked?.length || 0} liked · ${notes.disliked?.length || 0} disliked`;
+      }
+    }
+  ];
+
+  // Filter steps based on available answers
+  const availableSteps = preferenceSteps.filter(step => 
+    answers[step.key] !== undefined && answers[step.key] !== null
+  );
 
   return (
     <motion.div
@@ -100,61 +151,159 @@ const Results = () => {
           </motion.div>
         </div>
 
-        {/* Recommendations Grid */}
-        <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map((perfume, index) => (
-              <PerfumeCard 
-                key={perfume.id} 
-                perfume={perfume} 
-                index={index}
-                userPreferences={answers}
-              />
-            ))}
-          </div>
-          
-          {/* Enhanced Scroll Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-            className="mt-16 text-center space-x-4"
-          >
-            {/* Existing Sample Kits Button */}
-            <motion.button
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="group inline-flex items-center gap-3 px-6 py-3 rounded-full
-                       bg-gradient-to-r from-violet-400/10 via-fuchsia-400/10 to-amber-400/10
-                       border border-violet-400/20 hover:border-violet-400/40
-                       transition-all duration-300"
-              onClick={() => document.getElementById('coming-soon-section').scrollIntoView({ behavior: 'smooth' })}
+        {/* Recommendations Grid - Now first */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recommendations.map((perfume, index) => (
+            <PerfumeCard 
+              key={perfume.id} 
+              perfume={perfume} 
+              index={index}
+              userPreferences={answers}
+            />
+          ))}
+        </div>
+
+        {/* Journey Section - Now after matches */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative"
+        >
+          {/* Section Header */}
+          <div className="text-center space-y-4 mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full 
+                        bg-gradient-to-r from-violet-400/10 to-fuchsia-400/10 
+                        border border-violet-400/20 backdrop-blur-sm"
             >
+              <Sparkles className="w-4 h-4 text-violet-400" />
               <span className="text-sm font-medium bg-gradient-to-r from-violet-400 to-fuchsia-400 
                              bg-clip-text text-transparent">
-                Learn More About Sample Kits
+                Your Journey
               </span>
-              <ArrowDownCircle className="w-4 h-4 text-violet-400 group-hover:translate-y-1 transition-transform" />
-            </motion.button>
-
-            {/* New Journey Button */}
-            <motion.button
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
-              className="group inline-flex items-center gap-3 px-6 py-3 rounded-full
-                       bg-gradient-to-r from-accent-300/5 via-accent-400/5 to-accent-300/5
-                       border border-accent-300/20 hover:border-accent-300/40
-                       transition-all duration-300"
-              onClick={() => document.getElementById('journey-section').scrollIntoView({ behavior: 'smooth' })}
-            >
-              <span className="text-sm font-medium bg-gradient-to-r from-accent-300 to-accent-400 
+            </motion.div>
+            
+            <h2 className="text-3xl font-bold">
+              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-amber-400 
                              bg-clip-text text-transparent">
-                See Your Fragrance Journey
+                Your Fragrance Story
               </span>
-              <Compass className="w-4 h-4 text-accent-300 group-hover:rotate-45 transition-transform duration-300" />
-            </motion.button>
-          </motion.div>
-        </div>
+            </h2>
+            
+            <p className="text-neutral-400 max-w-2xl mx-auto">
+              We've crafted your perfect fragrance journey based on these carefully selected preferences
+            </p>
+          </div>
+
+          {/* Connection Line */}
+          <div className="absolute left-1/2 top-32 bottom-0 w-px bg-gradient-to-b from-violet-400/20 via-fuchsia-400/20 to-violet-400/20" />
+
+          {/* Journey Steps - existing code but update notes rendering */}
+          <div className="relative flex flex-col items-center gap-3">
+            {availableSteps.map((step, index) => (
+              <motion.div
+                key={step.key}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="relative w-full max-w-lg"
+              >
+                <motion.button
+                  onClick={() => setActiveStep(activeStep === step.key ? null : step.key)}
+                  className="group relative w-full"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {/* Step Card */}
+                  <div className="relative flex items-center gap-4 p-3 rounded-xl 
+                                bg-background-800/50 backdrop-blur-sm border border-violet-400/10
+                                hover:border-violet-400/20 transition-all duration-300">
+                    {/* Connection Point */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+                                  w-2 h-2 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+                    
+                    {/* Icon Container */}
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg 
+                                  bg-gradient-to-r ${step.color} bg-opacity-10 
+                                  flex items-center justify-center`}>
+                      <div className="text-white">{step.icon}</div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-neutral-400">
+                          {step.title}
+                        </span>
+                        <span className="text-sm font-medium bg-gradient-to-r from-violet-400 to-fuchsia-400 
+                                       bg-clip-text text-transparent">
+                          {step.getValue(answers)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+
+                {/* Expanded Details */}
+                <AnimatePresence>
+                  {activeStep === step.key && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-2 p-4 rounded-xl bg-background-800/30 backdrop-blur-sm">
+                        {step.key === 'notes' && answers.notes && (
+                          <div className="space-y-4">
+                            {answers.notes.liked?.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium text-violet-400 mb-2">Liked Notes</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {answers.notes.liked.map(note => (
+                                    <motion.span
+                                      key={note}
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="px-2 py-1 text-xs rounded-full 
+                                               bg-violet-400/10 text-violet-300"
+                                    >
+                                      {note}
+                                    </motion.span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {answers.notes.disliked?.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium text-neutral-400 mb-2">Disliked Notes</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {answers.notes.disliked.map(note => (
+                                    <motion.span
+                                      key={note}
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="px-2 py-1 text-xs rounded-full 
+                                               bg-neutral-400/10 text-neutral-300"
+                                    >
+                                      {note}
+                                    </motion.span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
         {/* Improved Coming Soon Section */}
         <div id="coming-soon-section" className="relative">
