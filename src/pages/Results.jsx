@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import PerfumeCard from '../components/results/PerfumeCard';
 import { preferenceDetails as educationalPreferenceDetails } from "../data/preferenceDetails";
+import PreferenceTooltip from '../components/results/PreferenceTooltip';
 
 
 const Results = () => {
@@ -278,9 +279,10 @@ const Results = () => {
                 transition={{ delay: index * 0.1 }}
                 className="relative w-full max-w-lg"
               >
-                <motion.button
-                  onClick={() => setActiveStep(activeStep === step.key ? null : step.key)}
+                <motion.div
                   className="group relative w-full"
+                  onHoverStart={() => setActiveStep(step.key)}
+                  onHoverEnd={() => setActiveStep(null)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -312,23 +314,14 @@ const Results = () => {
                       </div>
                     </div>
                   </div>
-                </motion.button>
 
-                {/* Expanded Details */}
-                <AnimatePresence>
-                  {activeStep === step.key && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="mt-2 p-4 rounded-xl bg-background-800/30 backdrop-blur-sm">
-                        {renderStepContent(step, answers)}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  {/* Tooltip */}
+                  <PreferenceTooltip 
+                    isVisible={activeStep === step.key}
+                    content={educationalPreferenceDetails[step.key]?.educational?.[answers[step.key]] || 
+                            "Discover how this preference shapes your perfect fragrance"}
+                  />
+                </motion.div>
               </motion.div>
             ))}
           </div>
