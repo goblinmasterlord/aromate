@@ -11,9 +11,9 @@ const WEIGHTS = {
   },
   WITHOUT_NOTES: {
     SEASON: 20,
-    OCCASION: 15,
-    TYPE: 50,
-    CHARACTERISTICS: 15
+    OCCASION: 25,
+    TYPE: 35,
+    CHARACTERISTICS: 20
   }
 };
 

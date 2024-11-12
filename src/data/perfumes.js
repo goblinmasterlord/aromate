@@ -945,5 +945,205 @@ export const perfumes = [
       },
       tags: ["fresh", "sweet", "seductive", "playful"],
       rating: 4.3
+    },
+    {
+      id: 39,
+      name: "Libre",
+      brand: "Yves Saint Laurent",
+      type: "floral",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 130.00,
+      size: "90ml",
+      year: 2019,
+      season: ["all"],
+      occasion: ["daily", "evening", "work"],
+      notes: {
+        top: ["mandarin orange", "lavender", "black currant"],
+        middle: ["jasmine", "orange blossom", "lavender"],
+        base: ["madagascar vanilla", "musk", "cedar", "ambergris"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["floral", "warm", "elegant", "modern"],
+      rating: 4.5
+    },
+    {
+      id: 40,
+      name: "Light Blue Forever",
+      brand: "Dolce & Gabbana",
+      type: "fresh",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 108.00,
+      size: "100ml",
+      year: 2021,
+      season: ["spring", "summer"],
+      occasion: ["casual", "beach", "day"],
+      notes: {
+        top: ["grapefruit", "orange", "lemon"],
+        middle: ["white flowers", "orange blossom"],
+        base: ["vetiver", "musk", "white woods"]
+      },
+      characteristics: {
+        longevity: 6,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["fresh", "citrus", "summer", "light"],
+      rating: 4.3
+    },
+    {
+      id: 41,
+      name: "Y Eau Fraiche",
+      brand: "Yves Saint Laurent",
+      type: "fresh",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 95.00,
+      size: "100ml",
+      year: 2023,
+      season: ["spring", "summer"],
+      occasion: ["casual", "sport", "day"],
+      notes: {
+        top: ["grapefruit", "lemon", "aldehydes"],
+        middle: ["geranium", "lavender", "mint"],
+        base: ["cedarwood", "musk", "amber"]
+      },
+      characteristics: {
+        longevity: 5,
+        sillage: 4,
+        intensity: 4
+      },
+      tags: ["fresh", "citrus", "sporty", "light"],
+      rating: 4.2
+    },
+    {
+      id: 42,
+      name: "Mon Paris Intensement",
+      brand: "Yves Saint Laurent",
+      type: "floral",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 130.00,
+      size: "90ml",
+      year: 2023,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "special"],
+      notes: {
+        top: ["bergamot", "raspberry", "pink pepper"],
+        middle: ["peony", "orange blossom", "jasmine"],
+        base: ["patchouli", "vanilla", "white musk"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["floral", "fruity", "romantic", "intense"],
+      rating: 4.4
+    },
+    {
+      id: 43,
+      name: "Oud for Greatness",
+      brand: "Initio",
+      type: "woody",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 370.00,
+      size: "90ml",
+      year: 2018,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special", "formal"],
+      notes: {
+        top: ["nutmeg", "saffron"],
+        middle: ["oud", "lavender"],
+        base: ["musk", "patchouli", "woody notes"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["woody", "oud", "luxurious", "powerful"],
+      rating: 4.7
+    },
+    {
+      id: 44,
+      name: "Love Don't Be Shy",
+      brand: "Kilian",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 295.00,
+      size: "50ml",
+      year: 2007,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "special"],
+      notes: {
+        top: ["bergamot", "neroli", "pink pepper"],
+        middle: ["orange blossom", "jasmine", "iris"],
+        base: ["vanilla", "caramel", "musk", "civet"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["sweet", "gourmand", "romantic", "luxurious"],
+      rating: 4.6
+    },
+    {
+      id: 45,
+      name: "Irish Leather",
+      brand: "Memo",
+      type: "leather",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 300.00,
+      size: "75ml",
+      year: 2013,
+      season: ["fall", "winter", "spring"],
+      occasion: ["casual", "outdoor", "special"],
+      notes: {
+        top: ["juniper berries", "green notes", "pink pepper"],
+        middle: ["leather", "clary sage", "mate"],
+        base: ["tonka bean", "birch", "amber"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["leather", "green", "aromatic", "unique"],
+      rating: 4.5
+    },
+    {
+      id: 46,
+      name: "Divine Vanille",
+      brand: "Essential Parfums",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 150.00,
+      size: "100ml",
+      year: 2021,
+      season: ["fall", "winter"],
+      occasion: ["evening", "casual", "date"],
+      notes: {
+        top: ["bergamot", "pink pepper"],
+        middle: ["vanilla absolute", "jasmine"],
+        base: ["benzoin", "cashmeran", "musk"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 6
+      },
+      tags: ["vanilla", "warm", "cozy", "elegant"],
+      rating: 4.4
     }
   ];
