@@ -3,10 +3,10 @@ import { perfumes } from '../data/perfumes';
 
 const WEIGHTS = {
   WITH_NOTES: {
-    NOTES: 35,
-    SEASON: 25,
-    OCCASION: 20,
-    TYPE: 5,
+    NOTES: 30,      // Reduced from 35 to balance
+    SEASON: 20,     // Reduced from 25
+    OCCASION: 20,   // Same
+    TYPE: 15,       // Increased from 5 - type is important!
     CHARACTERISTICS: 15
   },
   WITHOUT_NOTES: {
@@ -32,15 +32,20 @@ const noteGroups = {
 };
 
 export const getRecommendations = (preferences = {}) => {
-  console.log('=== Starting Recommendation Process ===');
-  console.log('Input Preferences:', JSON.stringify(preferences, null, 2));
+  console.log('[Recommendation Engine] Starting with preferences:', {
+    type: preferences.type,
+    season: preferences.season,
+    occasionCount: preferences.occasion?.length || 0,
+    likedNotes: preferences.notes?.liked?.length || 0,
+    dislikedNotes: preferences.notes?.disliked?.length || 0
+  });
 
   // Determine which weight system to use - require at least 2 liked notes
   const activeWeights = preferences.notes?.liked?.length > 1 
     ? WEIGHTS.WITH_NOTES 
     : WEIGHTS.WITHOUT_NOTES;
   
-  console.log('Using weights:', activeWeights);
+  console.log('[Recommendation Engine] Weight system:', preferences.notes?.liked?.length > 1 ? 'WITH_NOTES' : 'WITHOUT_NOTES');
 
   const defaultPreferences = {
     characteristics: {
@@ -71,14 +76,14 @@ export const getRecommendations = (preferences = {}) => {
     }
   };
 
-  console.log('Merged Preferences:', JSON.stringify(mergedPreferences, null, 2));
+  // Removed verbose merged preferences log
 
   const recommendations = perfumes.map(perfume => {
-    console.log(`\nScoring perfume: ${perfume.name}`);
+    // Scoring each perfume
     const score = calculatePerfumeScore(perfume, mergedPreferences, activeWeights);
     
-    // Normalize score to be out of 100
-    const normalizedScore = Math.round((score.score / 100) * 100);
+    // Score is already out of 100, no normalization needed
+    const normalizedScore = score.score;
     
     return {
       ...perfume,
@@ -97,27 +102,26 @@ export const getRecommendations = (preferences = {}) => {
     );
   });
 
+  console.log('[Recommendation Engine] Scores before filtering:', 
+    recommendations.map(r => `${r.name}: ${r.score}`).slice(0, 10).join(', '));
+
   // Log filtered recommendations
+  const scoreThreshold = 20; // Lowered from 30 to be more inclusive
   const finalRecommendations = filteredRecommendations
-    .filter(p => p.score > 30)
+    .filter(p => p.score > scoreThreshold)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
+  
+  console.log(`[Recommendation Engine] Scores > ${scoreThreshold}:`, filteredRecommendations.filter(p => p.score > scoreThreshold).length);
 
-  console.log('\n=== Final Recommendations ===');
-  finalRecommendations.forEach((rec, index) => {
-    console.log(`\n${index + 1}. ${rec.name}`);
-    console.log(`   Score: ${rec.score}%`);
-    console.log(`   Reasons: ${rec.matchReasons.join(', ')}`);
-  });
+  console.log(`[Recommendation Engine] Found ${finalRecommendations.length} matches:`, 
+    finalRecommendations.map(r => `${r.name} (${r.score}%)`).join(', '));
 
   return finalRecommendations;
 };
 
 const calculatePerfumeScore = (perfume, preferences, weights) => {
-  console.log('\n--- Calculating Score Details ---');
-  console.log(`Perfume: ${perfume.name}`);
-  console.log(`Type Check: perfume=${perfume.type}, preferred=${preferences.type}`);
-  console.log(`Notes: ${JSON.stringify(perfume.notes)}`);
+  // Calculate score for each perfume
   
   let score = 0;
   const matchReasons = [];
@@ -129,7 +133,7 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
     score += typeScore.score;
     scoreBreakdown.type = typeScore.score;
     if (typeScore.reason) matchReasons.push(typeScore.reason);
-    console.log(`Type Score: ${typeScore.score}`);
+    // Type score calculated
   }
 
   // Season matching
@@ -162,18 +166,57 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
     if (occasionScore.reason) matchReasons.push(occasionScore.reason);
   }
 
-  console.log('Score Breakdown:', scoreBreakdown);
-  console.log('Total Score:', Math.round(score));
-  console.log('Match Reasons:', matchReasons);
+  // Notes matching - CRITICAL FIX: This was missing!
+  if (preferences.notes?.liked?.length > 0 && weights.NOTES) {
+    const notesScore = calculateNotesScore(perfume, preferences.notes, weights.NOTES);
+    score += notesScore.score;
+    scoreBreakdown.notes = notesScore.score;
+    if (notesScore.reason) matchReasons.push(notesScore.reason);
+    // Notes score calculated
+  }
 
+  // Apply penalties for mismatches
+  let penalties = 0;
+  
+  // Penalty for wrong season (opposite seasons)
+  if (preferences.season) {
+    const oppositeSeasons = {
+      'summer': 'winter',
+      'winter': 'summer',
+      'spring': 'fall',
+      'fall': 'spring'
+    };
+    if (perfume.season.includes(oppositeSeasons[preferences.season]) && 
+        !perfume.season.includes('all')) {
+      penalties += 15; // Increased from 10 - stronger seasonal mismatch penalty
+    }
+    
+    // Additional penalty if perfume doesn't include the preferred season at all
+    if (!perfume.season.includes(preferences.season) && !perfume.season.includes('all')) {
+      penalties += 5; // Missing preferred season penalty
+    }
+  }
+
+  // Apply penalties
+  score = Math.max(0, score - penalties);
+  
+  // Bonus for matching multiple dimensions well
+  const dimensionsMatched = Object.values(scoreBreakdown).filter(s => s > 0).length;
+  if (dimensionsMatched >= 4) {
+    score += 5; // Bonus for well-rounded match
+    matchReasons.push('Well-rounded match across preferences');
+  }
+
+  // Return final score
   return {
     score: Math.round(score),
     matchReasons: matchReasons.filter(reason => reason)
   };
 };
 
-const calculateNotesScore = (perfume, preferredNotes) => {
-  const ADJUSTED_NOTES_WEIGHT = WEIGHTS.NOTES * 0.7;
+const calculateNotesScore = (perfume, preferredNotes, weight) => {
+  // Use full weight, not adjusted
+  const NOTES_WEIGHT = weight;
 
   // Logging object to track scoring details
   const scoring = {
@@ -235,21 +278,16 @@ const calculateNotesScore = (perfume, preferredNotes) => {
   });
 
   const normalizedScore = (
-    (directScore / Math.max(1, preferredNotes.liked.length) * 0.6 + 
-    familyScore / Math.max(1, preferredNotes.liked.length) * 0.4) * 
-    ADJUSTED_NOTES_WEIGHT
+    (directScore / Math.max(1, preferredNotes.liked.length) * 0.7 +  // Increased direct match importance
+    familyScore / Math.max(1, preferredNotes.liked.length) * 0.3) *   // Reduced family match importance
+    NOTES_WEIGHT
   );
 
   scoring.weights.direct = directScore;
   scoring.weights.family = familyScore;
   scoring.finalScore = normalizedScore;
 
-  // Log scoring details
-  console.log('Note Matching Details:', {
-    perfume: perfume.name,
-    scoring,
-    normalizedScore: Math.round(normalizedScore * 100) / 100
-  });
+  // Note matching completed
 
   return {
     score: normalizedScore,
@@ -334,7 +372,21 @@ const calculateCharacteristicsScore = (perfume, characteristics, weight) => {
 };
 
 const calculateOccasionScore = (perfume, preferredOccasions, weight) => {
-  const matches = preferredOccasions.filter(occasion => 
+  // Map quiz occasions to database occasions
+  const occasionMap = {
+    'daily': 'casual',  // Quiz uses 'daily', database uses 'casual'
+    'work': 'work',
+    'evening': 'evening',
+    'special': 'special',
+    'date': 'date',
+    'outdoor': 'outdoor'
+  };
+
+  // Map preferences to database terms
+  const mappedPreferences = preferredOccasions.map(occ => occasionMap[occ] || occ);
+  
+  // Count direct matches
+  const matches = mappedPreferences.filter(occasion => 
     perfume.occasion.includes(occasion)
   );
 
@@ -367,7 +419,7 @@ const calculateOccasionScore = (perfume, preferredOccasions, weight) => {
 };
 
 const calculateTypeScore = (perfume, preferredType, weight) => {
-  console.log(`Checking type match: perfume type=${perfume.type}, preferred=${preferredType}`);
+  // Check type match
   
   // Direct match
   if (perfume.type?.toLowerCase() === preferredType.toLowerCase()) {

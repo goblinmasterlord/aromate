@@ -21,7 +21,11 @@ const Results = () => {
   const answers = location.state?.answers || {};
 
   // Debug log to see what data we're receiving
-  console.log('Answers received:', answers);
+  console.log('[Results] Data received:', {
+    recommendationsCount: recommendations.length,
+    answers: answers,
+    hasState: !!location.state
+  });
 
   // If no recommendations are found, redirect to quiz
   React.useEffect(() => {

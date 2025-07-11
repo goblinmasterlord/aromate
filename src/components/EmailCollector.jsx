@@ -6,61 +6,91 @@ const EmailCollector = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [isFocused, setIsFocused] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent form submission
+    
+    if (!email) {
+      setStatus('error');
+      setValidationMessage('Please enter your email address');
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setStatus('error');
+      setValidationMessage('Please enter a valid email address');
+      return;
+    }
+
     setStatus('loading');
     
     // Simulate API call
     setTimeout(() => {
-      if (email.includes('@')) {
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
+      setStatus('success');
     }, 1500);
+  };
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'loading':
+        return <Loader className="w-5 h-5 text-violet-400 animate-spin" />;
+      case 'success':
+        return <Check className="w-5 h-5 text-violet-400" />;
+      case 'error':
+        return <X className="w-5 h-5 text-violet-400" />;
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="w-full max-w-md mx-auto mt-8">
-      <form onSubmit={handleSubmit} className="relative group">
+      <form 
+        onSubmit={handleSubmit} 
+        className="relative group"
+        noValidate // This prevents browser validation
+      >
         {/* Gradient border effect */}
-        <div className={`absolute -inset-0.5 bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 rounded-xl opacity-0 
+        <div className={`absolute -inset-0.5 bg-gradient-to-r from-violet-400/50 via-fuchsia-400/50 to-violet-400/50 rounded-xl opacity-0 
                         group-hover:opacity-100 blur transition duration-500 ${isFocused ? 'opacity-100' : ''}`} />
         
         {/* Main container */}
-        <div className="relative flex items-center p-1 rounded-xl bg-background-800/80 backdrop-blur-sm">
-          <div className="relative flex-1">
+        <div className="relative flex items-center gap-2 p-1.5 rounded-xl bg-background-800/80 backdrop-blur-sm">
+          <div className="relative flex-1 flex items-center">
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (status === 'error') {
+                  setStatus('idle');
+                  setValidationMessage('');
+                }
+              }}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder="Enter your email"
               disabled={status === 'loading' || status === 'success'}
               className="w-full bg-transparent px-4 py-3 text-white placeholder-neutral-500
-                         focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                       focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
             
-            {/* Status icon */}
+            {/* Status icon - Centered and with proper spacing */}
             <AnimatePresence mode="wait">
               {status !== 'idle' && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  className="absolute right-4 flex items-center justify-center"
                 >
-                  {status === 'loading' && (
-                    <Loader className="w-5 h-5 text-violet-400 animate-spin" />
-                  )}
-                  {status === 'success' && (
-                    <Check className="w-5 h-5 text-green-400" />
-                  )}
-                  {status === 'error' && (
-                    <X className="w-5 h-5 text-red-400" />
-                  )}
+                  {getStatusIcon()}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -71,50 +101,52 @@ const EmailCollector = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             disabled={status === 'loading' || status === 'success'}
-            className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2
-                      transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
-                      ${status === 'success' 
-                        ? 'bg-green-400 text-background-900' 
-                        : 'bg-violet-400 text-background-900 hover:bg-violet-300'}`}
+            className="px-6 py-3 rounded-lg font-medium flex items-center gap-2
+                      bg-violet-400 hover:bg-violet-300 text-background-900 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      transition-all duration-300"
           >
-            {status === 'success' ? (
-              <>
-                <Check className="w-4 h-4" />
-                Notified
-              </>
-            ) : (
-              <>
-                <Mail className="w-4 h-4" />
-                Notify Me
-              </>
-            )}
+            <Mail className="w-4 h-4" />
+            {status === 'success' ? 'Notified' : 'Notify Me'}
           </motion.button>
         </div>
-      </form>
 
-      {/* Status message */}
-      <AnimatePresence mode="wait">
-        {status === 'error' && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-sm text-red-400 mt-2 ml-1"
-          >
-            Please enter a valid email address
-          </motion.p>
-        )}
-        {status === 'success' && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-sm text-green-400 mt-2 ml-1"
-          >
-            Thanks! We'll notify you when samples are available.
-          </motion.p>
-        )}
-      </AnimatePresence>
+        {/* Custom Validation Message */}
+        <AnimatePresence mode="wait">
+          {status === 'error' && validationMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="absolute left-0 right-0 mt-2"
+            >
+              <div className="flex items-center gap-2 px-1">
+                <X className="w-4 h-4 text-violet-400" />
+                <span className="text-sm text-violet-400">
+                  {validationMessage}
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Success Message */}
+          {status === 'success' && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="absolute left-0 right-0 mt-2"
+            >
+              <div className="flex items-center gap-2 px-1">
+                <Check className="w-4 h-4 text-violet-400" />
+                <span className="text-sm text-violet-400">
+                  We'll notify you when samples are available
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </form>
     </div>
   );
 };

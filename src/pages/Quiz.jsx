@@ -32,7 +32,9 @@ const Quiz = () => {
         setIsLoading(true);
 
         // Get recommendations first
+        console.log('[Quiz] Getting recommendations with answers:', newAnswers);
         const results = getRecommendations(newAnswers);
+        console.log('[Quiz] Recommendations received:', results.length);
 
         // Show loading screen for minimum duration
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -41,7 +43,7 @@ const Quiz = () => {
         navigate('/results', { 
           state: { 
             recommendations: results,
-            answers: answers 
+            answers: newAnswers 
           } 
         });
       } catch (error) {
