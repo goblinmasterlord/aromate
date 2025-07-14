@@ -1,43 +1,39 @@
 // PerfumeCard.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Droplets, Clock, Wind, ChevronDown } from 'lucide-react';
+import { Star, Clock, Wind, ChevronDown, Sparkles, Heart } from 'lucide-react';
 
-const PerfumeCard = ({ perfume, index }) => {
+const PerfumeCard = ({ perfume, index, userPreferences }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const isMobile = window.innerWidth < 768;
 
   if (!perfume) return null;
 
-  const characteristics = [
-    {
-      icon: <Star className="w-4 h-4" />,
-      label: 'Intensity',
-      value: perfume.characteristics?.intensity || 0,
-    },
-    {
-      icon: <Clock className="w-4 h-4" />,
-      label: 'Longevity',
-      value: perfume.characteristics?.longevity || 0,
-    },
-    {
-      icon: <Wind className="w-4 h-4" />,
-      label: 'Sillage',
-      value: perfume.characteristics?.sillage || 0,
-    },
-  ];
+  // Get top 3 match reasons in a more user-friendly way
+  const getMatchHighlights = () => {
+    if (!perfume.matchReasons || perfume.matchReasons.length === 0) return [];
+    
+    // Simplify and make reasons more conversational
+    return perfume.matchReasons.slice(0, 3).map(reason => {
+      // Transform technical reasons into user-friendly language
+      if (reason.includes('Perfect match for')) {
+        return reason.replace('Perfect match for', 'Matches your');
+      }
+      if (reason.includes('Contains notes similar to')) {
+        return reason.replace('Contains notes similar to your preferences:', 'Features your favorite notes:');
+      }
+      return reason;
+    });
+  };
 
-  // Enhanced visual score calculation
-  const visualScore = {
-    raw: perfume.score,
-    display: Math.min(100, Math.round(perfume.score * 1.2)),
-    // Gradient based on score and ranking
-    gradient: index === 0 
-      ? 'from-violet-400 via-fuchsia-400 to-amber-400'
-      : perfume.score >= 80 
-        ? 'from-emerald-400 via-teal-400 to-emerald-400'
-        : 'from-accent-300 via-accent-400 to-accent-300'
+  const matchHighlights = getMatchHighlights();
+
+  // Format notes in a more elegant way - limit to 2 for space
+  const formatNotes = (notes) => {
+    return notes.slice(0, 2).map(note => 
+      note.split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ')
+    );
   };
 
   return (
@@ -45,201 +41,227 @@ const PerfumeCard = ({ perfume, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.5 }}
-      onHoverStart={() => !isMobile && setIsHovered(true)}
-      onHoverEnd={() => !isMobile && setIsHovered(false)}
-      className="relative group w-full"
+      className="relative w-full"
     >
-      {/* Special treatment for #1 match - Only shows on its own hover */}
-      {index === 0 && isHovered && (
-        <div className="absolute -inset-[1px] bg-gradient-to-r from-violet-400/20 via-fuchsia-400/20 to-amber-400/20 
-                      rounded-2xl blur-xl opacity-50 transition-opacity duration-300" />
-      )}
-
-      <motion.div
-        animate={{
-          scale: isHovered ? 1.02 : 1,
-          rotateY: isHovered ? 5 : 0,
-        }}
-        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        className={`relative bg-background-800/80 backdrop-blur-sm rounded-2xl 
-                   border border-neutral-800/50 overflow-hidden
-                   ${index === 0 ? 'border-l-2 border-l-violet-400/50' : ''}`}
-      >
-        {/* Integrated Top Match Indicator */}
-        {index === 0 && (
-          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-violet-400 via-fuchsia-400 to-amber-400">
-            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-violet-400/20 via-fuchsia-400/10 to-transparent blur-xl" />
-          </div>
-        )}
-
-        <div className="p-6">
-          {/* Score Display */}
-          <div className="absolute top-4 right-4 w-32">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                {index === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-1.5"
-                  >
-                    <motion.span
-                      animate={{ rotate: [0, 10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="text-amber-400 text-xs"
-                    >
-                      ✨
-                    </motion.span>
-                    <span className="text-xs bg-gradient-to-r from-violet-400 via-fuchsia-400 to-amber-400 
-                                   bg-clip-text text-transparent font-medium">
-                      Best Match
-                    </span>
-                  </motion.div>
-                )}
-                <span className={`text-sm font-medium bg-gradient-to-r ${visualScore.gradient} 
-                               bg-clip-text text-transparent ml-auto`}>
-                  {visualScore.display}%
-                </span>
-              </div>
-              <div className="h-1.5 bg-neutral-800/50 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${visualScore.display}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  className={`h-full rounded-full relative bg-gradient-to-r ${visualScore.gradient}`}
-                >
-                  <div className="absolute inset-0">
-                    <motion.div
-                      animate={{
-                        x: ["0%", "100%"],
-                        opacity: [0, 1, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatDelay: 1,
-                      }}
-                      className="w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                    />
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-
-          {/* Header with enhanced styling for #1 match */}
-          <div className="space-y-4">
-            <div>
-              <h3 className={`text-xl font-semibold transition-colors
-                ${index === 0 
-                  ? 'bg-gradient-to-r from-violet-400 via-fuchsia-400 to-amber-400 bg-clip-text text-transparent'
-                  : 'text-white group-hover:text-accent-300'}`}>
+      <div className={`relative bg-background-800/30 backdrop-blur-sm rounded-2xl 
+                     border border-neutral-800/30 overflow-hidden
+                     hover:border-neutral-700/40 transition-all duration-300
+                     ${index === 0 ? 'ring-1 ring-violet-400/20' : ''}`}>
+        
+        {/* Clean Header Section */}
+        <div className="p-6 space-y-4">
+          {/* Title & Score */}
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <h3 className="text-xl font-medium text-white">
                 {perfume.name}
               </h3>
-              <p className="text-sm text-neutral-400">{perfume.brand}</p>
+              <p className="text-sm text-neutral-500">{perfume.brand}</p>
             </div>
+            
+            <div className="text-right">
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-light text-white">{perfume.score}</span>
+                <span className="text-sm text-neutral-500">%</span>
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                {index === 0 && (
+                  <>
+                    <Sparkles className="w-3 h-3 text-violet-400" />
+                    <span className="text-xs text-violet-400">Best Match</span>
+                  </>
+                )}
+                {index !== 0 && (
+                  <span className="text-xs text-neutral-500">match</span>
+                )}
+              </div>
+            </div>
+          </div>
 
-            <p className="text-sm text-neutral-300">
-              A sophisticated fragrance featuring {perfume.notes.top.slice(0, 2).join(', ')} 
-              top notes with {perfume.notes.base.slice(0, 2).join(', ')} base notes.
-            </p>
+          {/* Primary Match Reason - Simplified */}
+          {matchHighlights.length > 0 && (
+            <div className="py-3 px-4 rounded-lg bg-neutral-800/30 border border-neutral-700/30">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <p className="text-sm text-neutral-200">
+                  {matchHighlights[0]}
+                </p>
+                {matchHighlights.length > 1 && (
+                  <span className="text-xs text-neutral-500 ml-auto">
+                    +{matchHighlights.length - 1} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
-            {/* Characteristics */}
-            <div className="grid grid-cols-3 gap-4">
-              {characteristics.map((char, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-neutral-400">
-                    {char.icon}
-                    <span className="text-xs">{char.label}</span>
-                  </div>
-                  <div className="h-1.5 bg-neutral-800/50 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(char.value / 10) * 100}%` }}
-                      transition={{ delay: 0.5 + index * 0.1, duration: 1, ease: "easeOut" }}
-                      className="h-full bg-accent-300/50 rounded-full relative"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-accent-300/0 via-accent-300/30 to-accent-300/0 animate-shimmer" />
-                    </motion.div>
-                  </div>
-                </div>
-              ))}
+          {/* Modern Notes Display - Compact */}
+          <div className="space-y-2">
+            <div className="flex gap-6">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-neutral-500 mb-1.5">Top</p>
+                <p className="text-sm text-neutral-300 truncate">
+                  {formatNotes(perfume.notes.top).join(', ')}
+                </p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-neutral-500 mb-1.5">Base</p>
+                <p className="text-sm text-neutral-300 truncate">
+                  {formatNotes(perfume.notes.base).join(', ')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Simplified Characteristics - More Compact */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-3 h-3 text-neutral-500" />
+              <span className="text-xs text-neutral-400">Intensity</span>
+              <div className="flex gap-0.5">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 h-2.5 rounded-full ${
+                      i < Math.round(perfume.characteristics.intensity / 2.5)
+                        ? 'bg-violet-400/60'
+                        : 'bg-neutral-700/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-neutral-500" />
+              <span className="text-xs text-neutral-400">Longevity</span>
+              <div className="flex gap-0.5">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 h-2.5 rounded-full ${
+                      i < Math.round(perfume.characteristics.longevity / 2.5)
+                        ? 'bg-violet-400/60'
+                        : 'bg-neutral-700/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <Wind className="w-3 h-3 text-neutral-500" />
+              <span className="text-xs text-neutral-400">Sillage</span>
+              <div className="flex gap-0.5">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 h-2.5 rounded-full ${
+                      i < Math.round(perfume.characteristics.sillage / 2.5)
+                        ? 'bg-violet-400/60'
+                        : 'bg-neutral-700/40'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Expand Button */}
-        {isMobile && (
+        {/* Clean Expand Button */}
+        {(matchHighlights.length > 1 || perfume.notes.middle.length > 0) && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full p-4 flex items-center justify-center gap-2 
-                     border-t border-neutral-800/50 text-neutral-400 
-                     hover:text-white transition-colors"
+            className="w-full px-6 py-3 flex items-center justify-center
+                     text-neutral-500 hover:text-neutral-400 
+                     transition-all duration-200"
           >
-            <span className="text-sm">{isExpanded ? 'Show less' : 'Show more'}</span>
+            <span className="text-xs">
+              {isExpanded ? 'Less' : 'More details'}
+            </span>
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
+              className="ml-1"
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-3.5 h-3.5" />
             </motion.div>
           </button>
         )}
 
-        {/* Match Reasons - Desktop (Hover) / Mobile (Expand) */}
+        {/* Expanded Details - Clean & Educational */}
         <AnimatePresence>
-          {((isHovered && !isMobile) || (isExpanded && isMobile)) && (
+          {isExpanded && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-t border-neutral-800/50"
+              className="overflow-hidden"
             >
-              <div className="p-6 space-y-4">
-                <div className="space-y-3">
-                  <h4 className={`text-sm font-medium ${
-                    index === 0 
-                      ? 'bg-gradient-to-r from-violet-400 via-fuchsia-400 to-amber-400 bg-clip-text text-transparent'
-                      : 'text-accent-300'
-                  }`}>
-                    Match Highlights
-                  </h4>
-                  <ul className="space-y-2">
-                    {perfume.matchReasons?.map((reason, i) => (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="text-sm text-neutral-400 flex items-start gap-2"
-                      >
-                        <div className={`shrink-0 mt-0.5 ${
-                          index === 0 
-                            ? 'text-fuchsia-400'
-                            : 'text-accent-300/50'
-                        }`}>
-                          <Droplets className="w-4 h-4" />
+              <div className="px-6 pb-6 space-y-6 border-t border-neutral-800/30">
+                {/* Why It Matches */}
+                {matchHighlights.length > 1 && (
+                  <div className="space-y-3 pt-6">
+                    <h4 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Why it matches
+                    </h4>
+                    <div className="space-y-2">
+                      {matchHighlights.map((reason, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5" />
+                          <p className="text-sm text-neutral-300">{reason}</p>
                         </div>
-                        <span>{reason}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Full Composition */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                    Full composition
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-xs text-neutral-600">Top</p>
+                      <div className="space-y-1">
+                        {perfume.notes.top.map((note, i) => (
+                          <p key={i} className="text-sm text-neutral-300 capitalize">
+                            {note}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                    {perfume.notes.middle.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-neutral-600">Heart</p>
+                        <div className="space-y-1">
+                          {perfume.notes.middle.map((note, i) => (
+                            <p key={i} className="text-sm text-neutral-300 capitalize">
+                              {note}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <p className="text-xs text-neutral-600">Base</p>
+                      <div className="space-y-1">
+                        {perfume.notes.base.map((note, i) => (
+                          <p key={i} className="text-sm text-neutral-300 capitalize">
+                            {note}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Enhanced hover effect - Different for top match */}
-        <div className={`absolute inset-0 border-2 border-transparent rounded-2xl 
-          transition-colors duration-500 ${
-            index === 0 
-              ? 'group-hover:border-violet-400/30'
-              : 'group-hover:border-accent-300/20'
-          }`} 
-        />
-      </motion.div>
+      </div>
     </motion.div>
   );
 };

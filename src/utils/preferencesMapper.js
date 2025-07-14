@@ -6,6 +6,7 @@ export const mapQuizAnswersToPreferences = (answers) => {
   }
 
   return {
+    gender: answers.gender || 'unisex',  // Now captured from quiz
     type: answers.type || '',  // Single value, not array
     season: answers.season || '',  // Single value, not array
     occasion: answers.occasion || [],  // This is correctly an array
@@ -14,7 +15,6 @@ export const mapQuizAnswersToPreferences = (answers) => {
       longevity: 5,  // Default middle value - no quiz question for this yet
       sillage: 5    // Default middle value - was missing entirely
     },
-    notes: answers.notes || { liked: [], disliked: [] },
-    gender: 'unisex' // default - no quiz question for this yet
+    notes: answers.notes || { liked: [], disliked: [] }
   };
 };

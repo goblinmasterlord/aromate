@@ -3,17 +3,19 @@ import { perfumes } from '../data/perfumes';
 
 const WEIGHTS = {
   WITH_NOTES: {
-    NOTES: 30,      // Reduced from 35 to balance
-    SEASON: 20,     // Reduced from 25
-    OCCASION: 20,   // Same
-    TYPE: 15,       // Increased from 5 - type is important!
-    CHARACTERISTICS: 15
+    NOTES: 25,      // Adjusted to make room for gender
+    SEASON: 15,     // Adjusted
+    OCCASION: 15,   // Adjusted
+    TYPE: 15,       // Type preference
+    GENDER: 20,     // Gender is important for personal preference
+    CHARACTERISTICS: 10
   },
   WITHOUT_NOTES: {
-    SEASON: 20,
-    OCCASION: 25,
-    TYPE: 35,
-    CHARACTERISTICS: 20
+    SEASON: 15,
+    OCCASION: 20,
+    TYPE: 30,
+    GENDER: 20,     // Gender is important even without notes
+    CHARACTERISTICS: 15
   }
 };
 
@@ -33,6 +35,7 @@ const noteGroups = {
 
 export const getRecommendations = (preferences = {}) => {
   console.log('[Recommendation Engine] Starting with preferences:', {
+    gender: preferences.gender || 'unisex',
     type: preferences.type,
     season: preferences.season,
     occasionCount: preferences.occasion?.length || 0,
@@ -127,6 +130,14 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
   const matchReasons = [];
   const scoreBreakdown = {};
 
+  // Gender matching - CRITICAL for personalization
+  if (preferences.gender && weights.GENDER) {
+    const genderScore = calculateGenderScore(perfume, preferences.gender, weights.GENDER);
+    score += genderScore.score;
+    scoreBreakdown.gender = genderScore.score;
+    if (genderScore.reason) matchReasons.push(genderScore.reason);
+  }
+
   // Type matching (moved up for priority)
   if (preferences.type) {
     const typeScore = calculateTypeScore(perfume, preferences.type, weights.TYPE);
@@ -197,6 +208,13 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
     }
   }
 
+  // Gender mismatch penalty - only for strong opposite preferences
+  if (preferences.gender && preferences.gender !== 'unisex' && perfume.gender !== 'unisex') {
+    if (preferences.gender !== perfume.gender) {
+      penalties += 25; // Strong penalty for opposite gender when both have specific gender
+    }
+  }
+
   // Apply penalties
   score = Math.max(0, score - penalties);
   
@@ -211,6 +229,38 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
   return {
     score: Math.round(score),
     matchReasons: matchReasons.filter(reason => reason)
+  };
+};
+
+const calculateGenderScore = (perfume, preferredGender, weight) => {
+  // Direct match
+  if (perfume.gender === preferredGender) {
+    return {
+      score: weight,
+      reason: `Perfect match for ${preferredGender} preferences`
+    };
+  }
+
+  // Unisex preference matches all
+  if (preferredGender === 'unisex') {
+    return {
+      score: weight * 0.8, // Slight reduction as some people prefer specifically gendered scents
+      reason: 'Suitable for all preferences'
+    };
+  }
+
+  // Unisex perfume matches any preference moderately well
+  if (perfume.gender === 'unisex') {
+    return {
+      score: weight * 0.7,
+      reason: 'Versatile unisex fragrance'
+    };
+  }
+
+  // Opposite gender is heavily penalized
+  return {
+    score: weight * 0.1, // Very low score but not zero
+    reason: null
   };
 };
 

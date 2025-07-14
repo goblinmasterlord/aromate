@@ -1272,7 +1272,7 @@ export const perfumes = [
       rating: 4.6
     },
     {
-      id: 53,
+      id: 52,
       name: "Aqua di Gio",
       brand: "Giorgio Armani",
       type: "fresh",
@@ -1370,5 +1370,255 @@ export const perfumes = [
       },
       tags: ["floral", "fresh", "light"],
       rating: 4.3
+    },
+    {
+      id: 56,
+      name: "Ombré Leather",
+      brand: "Tom Ford",
+      type: "leather",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 195.00,
+      size: "100ml",
+      year: 2018,
+      season: ["fall", "winter", "spring"],
+      occasion: ["evening", "special", "date"],
+      notes: {
+        top: ["cardamom", "jasmine sambac"],
+        middle: ["leather", "patchouli"],
+        base: ["amber", "moss", "vetiver"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["leather", "spicy", "warm", "sophisticated"],
+      rating: 4.7
+    },
+    {
+      id: 57,
+      name: "Cuir",
+      brand: "Mona di Orio",
+      type: "leather",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 240.00,
+      size: "75ml",
+      year: 2003,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special", "formal"],
+      notes: {
+        top: ["absinthe", "cardamom"],
+        middle: ["leather", "castoreum", "heliotrope"],
+        base: ["oud", "musk", "cedarwood"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 7,
+        intensity: 8
+      },
+      tags: ["leather", "animalic", "smoky", "artistic"],
+      rating: 4.6
+    },
+    {
+      id: 58,
+      name: "Cuir de Russie",
+      brand: "Chanel",
+      type: "leather",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 350.00,
+      size: "75ml",
+      year: 1924,
+      season: ["fall", "winter"],
+      occasion: ["evening", "formal", "special"],
+      notes: {
+        top: ["bergamot", "mandarin", "neroli"],
+        middle: ["jasmine", "rose", "ylang-ylang"],
+        base: ["leather", "birch tar", "vetiver", "musk"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["leather", "classic", "elegant", "refined"],
+      rating: 4.8
+    },
+    {
+      id: 59,
+      name: "Safran Colognise",
+      brand: "Nishane",
+      type: "leather",
+      concentration: "Parfum",
+      gender: "unisex",
+      price: 180.00,
+      size: "100ml",
+      year: 2019,
+      season: ["all"],
+      occasion: ["evening", "casual", "special"],
+      notes: {
+        top: ["saffron", "passion fruit", "pink pepper"],
+        middle: ["moroccan rose", "geranium"],
+        base: ["leather", "vetiver", "akigalawood", "ambroxan"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["leather", "saffron", "modern", "unique"],
+      rating: 4.5
+    },
+    {
+      id: 60,
+      name: "Baccarat Rouge 540",
+      brand: "Maison Francis Kurkdjian",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 325.00,
+      size: "70ml",
+      year: 2015,
+      season: ["all"],
+      occasion: ["evening", "special", "date"],
+      notes: {
+        top: ["saffron", "jasmine"],
+        middle: ["amberwood", "ambergris"],
+        base: ["fir resin", "cedar", "sugar", "ambroxan"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 9,
+        intensity: 8
+      },
+      tags: ["sweet", "amber", "luxurious", "unique"],
+      rating: 4.8
+    },
+    {
+      id: 61,
+      name: "Spicebomb Extreme",
+      brand: "Viktor & Rolf",
+      type: "spicy",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 130.00,
+      size: "90ml",
+      year: 2015,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "special"],
+      notes: {
+        top: ["lavender", "black pepper"],
+        middle: ["cinnamon", "vanilla", "tobacco"],
+        base: ["bourbon", "leather", "woody notes"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["spicy", "sweet", "warm", "masculine"],
+      rating: 4.6
+    },
+    {
+      id: 62,
+      name: "Opium Pour Homme",
+      brand: "Yves Saint Laurent",
+      type: "spicy",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 115.00,
+      size: "100ml",
+      year: 1995,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special", "formal"],
+      notes: {
+        top: ["black currant", "star anise", "pink pepper"],
+        middle: ["galanga", "ginger", "pepper"],
+        base: ["vanilla", "tolu balsam", "atlas cedar"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["spicy", "oriental", "warm", "classic"],
+      rating: 4.5
+    },
+    {
+      id: 63,
+      name: "Bentley for Men Intense",
+      brand: "Bentley",
+      type: "spicy",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 65.00,
+      size: "100ml",
+      year: 2013,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "casual"],
+      notes: {
+        top: ["bergamot", "black pepper", "bay leaf"],
+        middle: ["cinnamon", "rum", "clary sage"],
+        base: ["leather", "benzoin", "cedar", "patchouli"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["spicy", "boozy", "warm", "affordable"],
+      rating: 4.4
+    },
+    {
+      id: 64,
+      name: "Oajan",
+      brand: "Parfums de Marly",
+      type: "spicy",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 235.00,
+      size: "125ml",
+      year: 2013,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special", "date"],
+      notes: {
+        top: ["cinnamon", "honey"],
+        middle: ["benzoin", "labdanum", "osmanthus"],
+        base: ["patchouli", "tonka bean", "vanilla", "musk"]
+      },
+      characteristics: {
+        longevity: 9,
+        sillage: 8,
+        intensity: 8
+      },
+      tags: ["spicy", "sweet", "gourmand", "luxurious"],
+      rating: 4.7
+    },
+    {
+      id: 65,
+      name: "Black Afgano",
+      brand: "Nasomatto",
+      type: "spicy",
+      concentration: "Extrait de Parfum",
+      gender: "unisex",
+      price: 185.00,
+      size: "30ml",
+      year: 2009,
+      season: ["fall", "winter"],
+      occasion: ["evening", "special"],
+      notes: {
+        top: ["cannabis", "green notes"],
+        middle: ["resins", "woodsy notes", "tobacco"],
+        base: ["coffee", "incense", "oud"]
+      },
+      characteristics: {
+        longevity: 10,
+        sillage: 9,
+        intensity: 9
+      },
+      tags: ["spicy", "dark", "resinous", "powerful"],
+      rating: 4.5
     }
   ];

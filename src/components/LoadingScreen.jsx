@@ -112,8 +112,9 @@ const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
   
   const loadingTexts = [
-    "Finding your perfect fragrance match...",
-    "Crafting personalized recommendations..."
+    "Analyzing your preferences...",
+    "Searching through our collection...",
+    "Finding your perfect matches..."
   ];
 
   useEffect(() => {
@@ -121,7 +122,7 @@ const LoadingScreen = () => {
     
     const textInterval = setInterval(() => {
       setCurrentTextIndex(prev => (prev + 1) % loadingTexts.length);
-    }, ANIMATION_DURATION / 2);
+    }, ANIMATION_DURATION / 3);
 
     const progressInterval = setInterval(() => {
       const elapsedTime = Date.now() - startTime;

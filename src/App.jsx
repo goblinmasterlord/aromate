@@ -8,6 +8,7 @@ import SuspenseLoading from './components/SuspenseLoading';
 const Home = React.lazy(() => import('./pages/Home'));
 const Quiz = React.lazy(() => import('./pages/Quiz'));
 const Results = React.lazy(() => import('./pages/Results'));
+const Admin = React.lazy(() => import('./pages/Admin'));
 
 // Wrap routes with AnimatePresence
 function AnimatedRoutes() {
@@ -19,6 +20,7 @@ function AnimatedRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/results" element={<Results />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </AnimatePresence>
   );

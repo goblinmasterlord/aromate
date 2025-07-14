@@ -36,15 +36,38 @@ const NoteIcon = ({ noteId }) => {
   );
 };
 
-const NotesPreference = ({ onComplete }) => {
-  const [likedNotes, setLikedNotes] = useState([]);
-  const [dislikedNotes, setDislikedNotes] = useState([]);
+// Define note conflicts based on fragrance expertise
+// These are notes that typically clash or create unpleasant combinations
+const noteConflicts = {
+  'Vanilla': ['Marine Notes', 'Green Tea', 'Cucumber'],
+  'Leather': ['Fresh', 'Baby Powder', 'Cotton'],
+  'Oud': ['Light Citrus', 'Green Apple', 'Melon'],
+  'Tobacco': ['Fruity', 'Raspberry', 'Peach'],
+  'Marine Notes': ['Vanilla', 'Chocolate', 'Caramel'],
+  'Chocolate': ['Marine Notes', 'Grass', 'Green Tea'],
+  'Patchouli': ['Light Florals', 'Baby Powder'],
+  'Musk': ['Fresh Citrus', 'Cucumber'],
+  'Incense': ['Fruity', 'Sweet Florals']
+};
+
+const NotesPreference = ({ onComplete, onChange, initialNotes }) => {
+  const [likedNotes, setLikedNotes] = useState(initialNotes?.liked || []);
+  const [dislikedNotes, setDislikedNotes] = useState(initialNotes?.disliked || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Popular');
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef(null);
   const searchContainerRef = useRef(null);
   const resultsRef = useRef(null);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [conflictWarning, setConflictWarning] = useState('');
+
+  // Call onChange whenever notes change
+  useEffect(() => {
+    if (onChange) {
+      onChange({ liked: likedNotes, disliked: dislikedNotes });
+    }
+  }, [likedNotes, dislikedNotes, onChange]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -69,13 +92,46 @@ const NotesPreference = ({ onComplete }) => {
     searchRef.current?.focus();
   };
 
+  const checkForConflicts = (note, currentLikedNotes) => {
+    const conflicts = [];
+    
+    // Check if this note conflicts with already selected notes
+    currentLikedNotes.forEach(likedNote => {
+      if (noteConflicts[likedNote]?.includes(note)) {
+        conflicts.push(`${note} conflicts with ${likedNote}`);
+      }
+      if (noteConflicts[note]?.includes(likedNote)) {
+        conflicts.push(`${note} conflicts with ${likedNote}`);
+      }
+    });
+    
+    return conflicts;
+  };
+
   const handleNoteSelect = (note) => {
     if (likedNotes.includes(note)) {
       setLikedNotes(likedNotes.filter(n => n !== note));
+      setShowLimitWarning(false);
     } else if (dislikedNotes.includes(note)) {
       setDislikedNotes(dislikedNotes.filter(n => n !== note));
     } else {
+      // Check 3-note limit
+      if (likedNotes.length >= 3) {
+        setShowLimitWarning(true);
+        setTimeout(() => setShowLimitWarning(false), 3000);
+        return;
+      }
+      
+      // Check for conflicts
+      const conflicts = checkForConflicts(note, likedNotes);
+      if (conflicts.length > 0) {
+        setConflictWarning(`${note} doesn't pair well with your selected notes`);
+        setTimeout(() => setConflictWarning(''), 3000);
+        return;
+      }
+      
       setLikedNotes([...likedNotes, note]);
+      setShowLimitWarning(false);
     }
   };
 
@@ -105,15 +161,62 @@ const NotesPreference = ({ onComplete }) => {
     : { [activeCategory]: fragranceNotes[activeCategory] };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4">
+    <div className="w-full max-w-5xl mx-auto px-4 pb-24">
       {/* Header Section */}
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-4xl font-display font-bold text-white">
           Fragrance Notes
         </h2>
         <p className="text-neutral-400 max-w-lg mx-auto text-lg">
-          Help us understand your preferences by selecting notes you love and those you'd rather avoid.
+          Select up to <span className="text-violet-400 font-medium">3 notes</span> you love and any you'd rather avoid.
         </p>
+        
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <div className="flex gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  i < likedNotes.length 
+                    ? 'bg-violet-400' 
+                    : 'bg-neutral-700'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-sm text-neutral-500 ml-2">
+            {likedNotes.length}/3 selected
+          </span>
+        </div>
+
+        {/* Warnings */}
+        <AnimatePresence mode="wait">
+          {showLimitWarning && (
+            <motion.div
+              key="limit"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-400/10 text-amber-400 text-sm"
+            >
+              <Info className="w-4 h-4" />
+              You can select up to 3 favorite notes
+            </motion.div>
+          )}
+          {conflictWarning && (
+            <motion.div
+              key="conflict"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-400/10 text-rose-400 text-sm"
+            >
+              <Info className="w-4 h-4" />
+              {conflictWarning}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Categories Bar with Search Toggle */}
@@ -188,7 +291,7 @@ const NotesPreference = ({ onComplete }) => {
               onClick={() => setShowSearch(!showSearch)}
               className={`p-2.5 rounded-xl transition-all duration-300 ease-out
                 ${showSearch 
-                  ? 'bg-accent-300/10 text-accent-300 hover:bg-accent-300/20' 
+                  ? 'bg-violet-400/10 text-violet-400 hover:bg-violet-400/20' 
                   : 'hover:bg-background-800/40 text-neutral-400 hover:text-white'
                 }`}
             >
@@ -212,7 +315,7 @@ const NotesPreference = ({ onComplete }) => {
               >
                 <div className={`p-4 rounded-xl border transition-all duration-200
                   ${likedNotes.includes(note)
-                    ? 'bg-accent-300/10 border-accent-300/20'
+                    ? 'bg-violet-400/10 border-violet-400/20'
                     : dislikedNotes.includes(note)
                     ? 'bg-neutral-500/10 border-neutral-500/20'
                     : 'bg-background-800/50 border-neutral-800 hover:border-neutral-700'
@@ -221,7 +324,7 @@ const NotesPreference = ({ onComplete }) => {
                   <div className="flex items-center justify-between">
                     <span className={`text-lg font-medium
                       ${likedNotes.includes(note)
-                        ? 'text-accent-300'
+                        ? 'text-violet-400'
                         : dislikedNotes.includes(note)
                         ? 'text-neutral-500'
                         : 'text-white'
@@ -234,8 +337,8 @@ const NotesPreference = ({ onComplete }) => {
                         onClick={() => handleNoteSelect(note)}
                         className={`p-2 rounded-lg transition-colors
                           ${likedNotes.includes(note)
-                            ? 'text-accent-300 bg-accent-300/10'
-                            : 'text-neutral-400 hover:text-accent-300 hover:bg-accent-300/10'
+                            ? 'text-violet-400 bg-violet-400/10'
+                            : 'text-neutral-400 hover:text-violet-400 hover:bg-violet-400/10'
                           }`}
                       >
                         <ThumbsUp className="w-4 h-4" />
@@ -259,32 +362,7 @@ const NotesPreference = ({ onComplete }) => {
         ))}
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="fixed bottom-8 right-8 flex gap-4">
-        <motion.button
-          onClick={handleSkip}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 rounded-xl font-medium 
-                   bg-background-800/90 text-neutral-400 
-                   hover:bg-background-700/90 hover:text-neutral-300 
-                   backdrop-blur-sm transition-colors"
-        >
-          Skip this step
-        </motion.button>
-
-        <motion.button
-          onClick={() => onComplete({ liked: likedNotes, disliked: dislikedNotes })}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 rounded-xl font-medium flex items-center gap-2
-                   bg-accent-300 text-background-900 
-                   shadow-lg shadow-accent-300/20"
-        >
-          Continue
-          <ChevronRight className="w-4 h-4" />
-        </motion.button>
-      </div>
+      {/* Removed navigation buttons - handled by Quiz.jsx sticky nav */}
 
       {/* Selected Notes Summary (replaces info box) */}
       <AnimatePresence>
@@ -300,9 +378,9 @@ const NotesPreference = ({ onComplete }) => {
               {likedNotes.length > 0 && (
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
-                    <ThumbsUp className="w-4 h-4 text-accent-300" />
-                    <span className="text-sm font-medium text-accent-300">
-                      Liked Notes ({likedNotes.length})
+                    <ThumbsUp className="w-4 h-4 text-violet-400" />
+                    <span className="text-sm font-medium text-violet-400">
+                      Liked Notes ({likedNotes.length}/3)
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -311,13 +389,13 @@ const NotesPreference = ({ onComplete }) => {
                         key={note}
                         layout
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
-                                 bg-accent-300/10 border border-accent-300/20 
-                                 text-sm text-accent-300"
+                                 bg-violet-400/10 border border-violet-400/20 
+                                 text-sm text-violet-400"
                       >
                         {note}
                         <button
                           onClick={() => handleNoteSelect(note)}
-                          className="hover:text-accent-400 p-0.5 rounded-full hover:bg-accent-300/10"
+                          className="hover:text-violet-500 p-0.5 rounded-full hover:bg-violet-400/10"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -422,17 +500,17 @@ const CategoryButton = ({ category, isActive, onClick }) => {
           scale: isActive ? 1 : 0.95,
         }}
         transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-        className="absolute inset-0 rounded-lg bg-accent-300/10 border border-accent-300/20"
+        className="absolute inset-0 rounded-lg bg-violet-400/10 border border-violet-400/20"
       />
       
       {/* Content layer */}
       <span className={`relative z-10 transition-colors duration-300 ${
-        isActive ? 'text-accent-300' : 'text-neutral-400 group-hover:text-neutral-300'
+        isActive ? 'text-violet-400' : 'text-neutral-400 group-hover:text-neutral-300'
       }`}>
         {icon}
       </span>
       <span className={`relative z-10 transition-colors duration-300 ${
-        isActive ? 'text-accent-300' : 'text-neutral-400 group-hover:text-neutral-300'
+        isActive ? 'text-violet-400' : 'text-neutral-400 group-hover:text-neutral-300'
       }`}>
         {category}
       </span>

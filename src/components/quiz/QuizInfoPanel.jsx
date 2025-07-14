@@ -3,6 +3,14 @@ import { motion } from 'framer-motion';
 import { Lightbulb, Sparkles } from 'lucide-react';
 
 const educationalContent = {
+  gender: {
+    title: "Fragrance Character & Expression",
+    facts: [
+      "Fragrance transcends traditional gender boundaries",
+      "Your preference reflects your unique personality",
+      "Many modern fragrances are designed to be unisex"
+    ]
+  },
   type: {
     title: "The Power of Fragrance Families",
     facts: [
@@ -47,6 +55,11 @@ const educationalContent = {
 
 const QuizInfoPanel = ({ currentQuestion }) => {
   const content = educationalContent[currentQuestion.id];
+  
+  // Safety check for undefined content
+  if (!content) {
+    return null;
+  }
 
   return (
     <motion.div

@@ -2,6 +2,17 @@ import React from 'react';
 
 export const quizQuestions = [
   {
+    id: 'gender',
+    title: 'What fragrance style do you prefer?',
+    type: 'single-select',
+    description: 'This helps us match you with the right fragrance character',
+    options: [
+      { id: 'feminine', label: 'Feminine', icon: '🌺', description: 'Soft, elegant, and graceful compositions' },
+      { id: 'masculine', label: 'Masculine', icon: '🌲', description: 'Bold, strong, and confident fragrances' },
+      { id: 'unisex', label: 'Unisex', icon: '✨', description: 'Versatile scents that transcend gender' }
+    ]
+  },
+  {
     id: 'type',
     title: 'What kind of fragrance are you looking for?',
     type: 'single-select',

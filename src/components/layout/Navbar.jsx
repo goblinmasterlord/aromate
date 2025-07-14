@@ -55,6 +55,7 @@ const Navbar = ({ onMenuClick }) => {
           <div className="hidden md:flex items-center space-x-1">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/quiz">Take Quiz</NavLink>
+            <NavLink to="/admin">Admin</NavLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -75,6 +76,7 @@ const Navbar = ({ onMenuClick }) => {
         <div className="px-4 py-3 space-y-1">
           <NavLink to="/">Home</NavLink>
           <NavLink to="/quiz">Take Quiz</NavLink>
+          <NavLink to="/admin">Admin</NavLink>
           <NavLink to="/explore">Explore</NavLink>
           <NavLink to="/about">About</NavLink>
         </div>
