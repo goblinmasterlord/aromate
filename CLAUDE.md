@@ -58,38 +58,26 @@ src/
 ## The Recommendation Algorithm
 
 **Location:** `src/utils/recommendationEngine.js`
+**Full documentation:** [`RECOMMENDATION_ENGINE.md`](./RECOMMENDATION_ENGINE.md)
 
-### Weight Systems
-```javascript
-WITH_NOTES: {    // When user selects 2+ liked notes
-  NOTES: 25, SEASON: 15, OCCASION: 15, TYPE: 15, GENDER: 20, CHARACTERISTICS: 10
-}
-WITHOUT_NOTES: { // When user skips or selects <2 notes
-  SEASON: 15, OCCASION: 20, TYPE: 30, GENDER: 20, CHARACTERISTICS: 15
-}
-```
+### Quick Reference
+
+**Two weight systems:** WITH_NOTES (2+ liked notes) vs WITHOUT_NOTES
+**Key difference:** Without notes, TYPE weight jumps from 15→30
 
 ### Scoring Flow
-1. Calculate score for each perfume across all dimensions
-2. Apply penalties for mismatches (opposite seasons: -15, wrong gender: -25)
-3. Bonus +5 for matching 4+ dimensions
-4. Filter out perfumes with disliked notes
-5. Filter scores > 20
-6. Return top 3 sorted by score
+1. Score each perfume across: gender, type, season, occasion, notes, characteristics
+2. Apply penalties: opposite season (-15), wrong gender (-25)
+3. Bonus +5 for 4+ matching dimensions
+4. Hard filter: remove perfumes with disliked notes
+5. Threshold filter: score > 20
+6. Return top 3
 
-### Key Functions
-- `getRecommendations(preferences)` - Main entry point
-- `calculatePerfumeScore(perfume, preferences, weights)` - Per-perfume scoring
-- `calculateNotesScore()` - Direct + family note matching
-- `calculateGenderScore()` - Gender compatibility
-- `calculateTypeScore()` - Fragrance type matching with families
-- `calculateSeasonScore()` - Season + adjacent season matching
-- `calculateOccasionScore()` - Occasion mapping (quiz→db terms)
-
-### Note Groups (for family matching)
-```javascript
-citrus, floral, woody, oriental, fresh, fruity, spicy, gourmand, green, leather
-```
+### Critical Details
+- `daily` in quiz maps to `casual` in database
+- Notes use position weights: top (1.2×), middle (1.0×), base (0.8×)
+- Family matching gives partial credit (e.g., "rose" matches any floral perfume)
+- Characteristics default to 5/5/5 (quiz doesn't ask)
 
 ---
 
