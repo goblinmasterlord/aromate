@@ -10,7 +10,7 @@ export const perfumes = [
       size: "100ml",
       year: 2001,
       season: ["spring", "summer"],
-      occasion: ["casual", "day", "beach"],
+      occasion: ["casual", "beach"],
       notes: {
         top: ["sicilian lemon", "green apple", "cedar"],
         middle: ["bamboo", "jasmine", "white rose"],
@@ -525,31 +525,6 @@ export const perfumes = [
       rating: 4.7
     },
     {
-      id: 22,
-      name: "Oud Wood",
-      brand: "Tom Ford",
-      type: "woody",
-      concentration: "Eau de Parfum",
-      gender: "unisex",
-      price: 300.00,
-      size: "100ml",
-      year: 2009,
-      season: ["all"],
-      occasion: ["any"],
-      notes: {
-        top: ["oud", "Brazilian rosewood", "cardamom"],
-        middle: ["sichuan pepper", "sandalwood", "vetiver"],
-        base: ["tonka bean", "vanilla", "amber"]
-      },
-      characteristics: {
-        longevity: 8,
-        sillage: 7,
-        intensity: 7
-      },
-      tags: ["oudy", "spicy", "warm"],
-      rating: 4.8
-    },
-    {
       id: 23,
       name: "Tobacco Vanille",
       brand: "Tom Ford",
@@ -585,7 +560,7 @@ export const perfumes = [
       size: "100ml",
       year: 2011,
       season: ["all"],
-      occasion: ["any"],
+      occasion: ["casual", "evening", "work"],
       notes: {
         top: ["cardamom", "iris", "violet"],
         middle: ["ambrox", "Australian sandalwood", "papyrus"],
@@ -610,7 +585,7 @@ export const perfumes = [
       size: "100ml",
       year: 2023,
       season: ["spring", "summer"],
-      occasion: ["beach", "casual", "day"],
+      occasion: ["beach", "casual"],
       notes: {
         top: ["lemon", "grapefruit", "coconut water"],
         middle: ["jasmine", "frangipani", "orange blossom"],
@@ -635,7 +610,7 @@ export const perfumes = [
       size: "100ml",
       year: 2023,
       season: ["summer"],
-      occasion: ["casual", "beach", "day"],
+      occasion: ["casual", "beach"],
       notes: {
         top: ["citrus", "watermelon", "sea notes"],
         middle: ["green tea", "eucalyptus", "mint"],
@@ -660,7 +635,7 @@ export const perfumes = [
       size: "100ml",
       year: 2023,
       season: ["summer", "spring"],
-      occasion: ["casual", "day", "beach"],
+      occasion: ["casual", "beach"],
       notes: {
         top: ["grapefruit", "lychee", "passion fruit"],
         middle: ["water lily", "rose", "aquatic notes"],
@@ -685,7 +660,7 @@ export const perfumes = [
       size: "150ml",
       year: 2006,
       season: ["spring", "summer"],
-      occasion: ["casual", "day", "vacation"],
+      occasion: ["casual", "vacation"],
       notes: {
         top: ["bergamot", "lemon", "grapefruit", "citron"],
         middle: ["fig nectar", "pink pepper", "jasmine"],
@@ -710,7 +685,7 @@ export const perfumes = [
       size: "100ml",
       year: 2022,
       season: ["spring", "summer"],
-      occasion: ["sport", "casual", "day"],
+      occasion: ["sport", "casual"],
       notes: {
         top: ["grapefruit", "lemon", "mint"],
         middle: ["lavender", "iso e super", "ginger"],
@@ -760,7 +735,7 @@ export const perfumes = [
       size: "125ml",
       year: 2021,
       season: ["spring", "summer"],
-      occasion: ["sport", "casual", "day"],
+      occasion: ["sport", "casual"],
       notes: {
         top: ["bergamot", "elemi", "pink pepper"],
         middle: ["lavender", "geranium", "rosemary"],
@@ -857,7 +832,7 @@ export const perfumes = [
       size: "125ml",
       year: 2020,
       season: ["spring", "summer"],
-      occasion: ["casual", "beach", "day"],
+      occasion: ["casual", "beach"],
       notes: {
         top: ["marine notes", "bergamot", "green mandarin"],
         middle: ["lavender", "cypress", "rosemary"],
@@ -982,7 +957,7 @@ export const perfumes = [
       size: "100ml",
       year: 2021,
       season: ["spring", "summer"],
-      occasion: ["casual", "beach", "day"],
+      occasion: ["casual", "beach"],
       notes: {
         top: ["grapefruit", "orange", "lemon"],
         middle: ["white flowers", "orange blossom"],
@@ -1007,7 +982,7 @@ export const perfumes = [
       size: "100ml",
       year: 2023,
       season: ["spring", "summer"],
-      occasion: ["casual", "sport", "day"],
+      occasion: ["casual", "sport"],
       notes: {
         top: ["grapefruit", "lemon", "aldehydes"],
         middle: ["geranium", "lavender", "mint"],
@@ -1157,7 +1132,7 @@ export const perfumes = [
       size: "100ml",
       year: 1995,
       season: ["spring", "summer"],
-      occasion: ["casual", "day"],
+      occasion: ["casual"],
       notes: {
         top: ["bergamot", "mandarin orange"],
         middle: ["green tea", "black currant"],

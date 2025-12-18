@@ -441,8 +441,8 @@ const calculateOccasionScore = (perfume, preferredOccasions, weight) => {
   );
 
   const occasionGroups = {
-    casual: ['daily', 'casual', 'work', 'office'],
-    formal: ['evening', 'formal', 'special'],
+    casual: ['daily', 'casual', 'day', 'work', 'office'],
+    formal: ['evening', 'formal', 'special', 'date'],
     outdoor: ['sport', 'beach', 'vacation', 'outdoor'],
   };
 
