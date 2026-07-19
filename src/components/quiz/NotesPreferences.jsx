@@ -1,56 +1,39 @@
 // NotesPreference.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  ThumbsUp, 
-  ThumbsDown, 
-  X, 
-  ChevronRight, 
+import {
+  Search,
+  ThumbsUp,
+  ThumbsDown,
+  X,
   Info,
-  Star, 
-  Flower, 
-  Trees, 
-  Moon, 
-  Flame, 
-  Apple, 
-  Leaf, 
-  Cookie, 
-  Droplets, 
-  Mountain, 
-  Sparkles 
+  Star,
+  Flower,
+  Trees,
+  Moon,
+  Flame,
+  Apple,
+  Leaf,
+  Cookie,
+  Droplets,
+  Mountain,
+  Sparkles
 } from 'lucide-react';
-import * as Tooltip from '@radix-ui/react-tooltip';
-import { noteIcons } from '../../data/noteIcons';
 import { fragranceNotes } from '../../data/fragranceNotes';
 
-const NoteIcon = ({ noteId }) => {
-  const iconData = noteIcons[noteId];
-  if (!iconData) return null;
-  
-  const Icon = iconData.icon;
-  return (
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-background-900/50 ${iconData.color}`}>
-      <Icon className="w-5 h-5" />
-    </div>
-  );
-};
-
-// Define note conflicts based on fragrance expertise
-// These are notes that typically clash or create unpleasant combinations
+// Notes that typically clash or create unpleasant combinations.
+// Only labels that actually exist in fragranceNotes.js belong here.
 const noteConflicts = {
-  'Vanilla': ['Marine Notes', 'Green Tea', 'Cucumber'],
-  'Leather': ['Fresh', 'Baby Powder', 'Cotton'],
-  'Oud': ['Light Citrus', 'Green Apple', 'Melon'],
-  'Tobacco': ['Fruity', 'Raspberry', 'Peach'],
-  'Marine Notes': ['Vanilla', 'Chocolate', 'Caramel'],
-  'Chocolate': ['Marine Notes', 'Grass', 'Green Tea'],
-  'Patchouli': ['Light Florals', 'Baby Powder'],
-  'Musk': ['Fresh Citrus', 'Cucumber'],
-  'Incense': ['Fruity', 'Sweet Florals']
+  'Vanilla': ['Marine Notes', 'Sea Salt', 'Green Tea'],
+  'Marine Notes': ['Vanilla', 'Chocolate', 'Caramel', 'Praline'],
+  'Oud': ['Apple', 'Melon', 'Marine Notes'],
+  'Tobacco': ['Raspberry', 'Melon'],
+  'Chocolate': ['Marine Notes', 'Green Tea', 'Moss'],
+  'Leather': ['Coconut', 'Melon'],
+  'Incense': ['Coconut', 'Melon']
 };
 
-const NotesPreference = ({ onComplete, onChange, initialNotes }) => {
+const NotesPreference = ({ onChange, initialNotes }) => {
   const [likedNotes, setLikedNotes] = useState(initialNotes?.liked || []);
   const [dislikedNotes, setDislikedNotes] = useState(initialNotes?.disliked || []);
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,20 +128,13 @@ const NotesPreference = ({ onComplete, onChange, initialNotes }) => {
     }
   };
 
-  const handleSkip = () => {
-    onComplete({ liked: [], disliked: [] });
-  };
-
-  // Filter notes based on search
-  const filteredNotes = searchTerm 
-    ? Object.entries(fragranceNotes).reduce((acc, [category, notes]) => {
-        const filtered = notes.filter(note => 
-          note.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        if (filtered.length) acc[category] = filtered;
-        return acc;
-      }, {})
-    : { [activeCategory]: fragranceNotes[activeCategory] };
+  // Notes to display: the active category, or a deduplicated search result
+  // (notes can appear both in Popular and their own category).
+  const visibleNotes = searchTerm
+    ? [...new Set(Object.values(fragranceNotes).flat())].filter(note =>
+        note.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : fragranceNotes[activeCategory] || [];
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 pb-24">
@@ -303,9 +279,7 @@ const NotesPreference = ({ onComplete, onChange, initialNotes }) => {
 
       {/* Notes Grid */}
       <div ref={resultsRef} className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Object.entries(filteredNotes).map(([category, notes]) => (
-          <React.Fragment key={category}>
-            {notes.map(note => (
+        {visibleNotes.map(note => (
               <motion.div
                 key={note}
                 initial={{ opacity: 0, y: 20 }}
@@ -356,9 +330,7 @@ const NotesPreference = ({ onComplete, onChange, initialNotes }) => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </React.Fragment>
+          </motion.div>
         ))}
       </div>
 
@@ -468,16 +440,13 @@ const CategoryButton = ({ category, isActive, onClick }) => {
     case 'Fruity':
       icon = <Apple className="w-4 h-4" />;
       break;
-    case 'Green':
-      icon = <Leaf className="w-4 h-4" />;
+    case 'Fresh':
+      icon = <Droplets className="w-4 h-4" />;
       break;
     case 'Gourmand':
       icon = <Cookie className="w-4 h-4" />;
       break;
-    case 'Marine':
-      icon = <Droplets className="w-4 h-4" />;
-      break;
-    case 'Earthy':
+    case 'Leather & Tobacco':
       icon = <Mountain className="w-4 h-4" />;
       break;
     default:
