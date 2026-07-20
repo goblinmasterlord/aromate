@@ -36,7 +36,7 @@ const PerfumeForm = ({ perfume, onSave, onClose }) => {
   });
   const [activeTab, setActiveTab] = useState('basic');
 
-  const perfumeTypes = ['fresh', 'floral', 'oriental', 'woody', 'fougere', 'chypre', 'gourmand'];
+  const perfumeTypes = ['fresh', 'floral', 'oriental', 'woody', 'spicy', 'leather'];
   const concentrations = ['Eau de Cologne', 'Eau de Toilette', 'Eau de Parfum', 'Parfum', 'Extrait de Parfum'];
   const genders = ['masculine', 'feminine', 'unisex'];
   const seasons = ['spring', 'summer', 'fall', 'winter'];

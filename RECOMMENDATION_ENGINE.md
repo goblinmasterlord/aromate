@@ -1,290 +1,146 @@
 # Recommendation Engine Documentation
 
 **File:** `src/utils/recommendationEngine.js`
+**Note matching:** `src/utils/noteMatching.js`
+**Note taxonomy:** `src/data/fragranceNotes.js`
 
-This document explains how the perfume recommendation algorithm works in detail.
+This document explains how the perfume recommendation algorithm works.
 
 ---
 
 ## Algorithm Overview
 
 ```
-User Preferences → Score All Perfumes → Filter Disliked Notes → Filter by Threshold → Sort → Top 3
+User Preferences → Score All Perfumes → Split by Disliked Notes →
+Threshold Filter → Sort → Top 3 (backfilled if needed) → Honesty Labels
 ```
 
 ### Entry Point
 ```javascript
-getRecommendations(preferences) → returns top 3 perfumes with scores and matchReasons
+getRecommendations(preferences) → top 3 perfumes with score (0-100) and matchReasons
+```
+
+Preferences shape (all fields optional):
+```javascript
+{
+  gender: 'feminine' | 'masculine' | 'unisex',
+  type: 'fresh' | 'floral' | 'woody' | 'oriental' | 'spicy' | 'leather',
+  season: 'spring' | 'summer' | 'fall' | 'winter',
+  occasion: string[],                       // quiz ids, e.g. ['daily', 'work']
+  notes: { liked: string[], disliked: string[] }  // labels from fragranceNotes.js
+}
 ```
 
 ---
 
 ## Weight Systems
 
-The algorithm uses two different weight systems depending on whether the user selected notes.
+Two weight sets, chosen by whether the user picked **any** liked notes.
+Each set sums to 100 and every dimension score is capped at its weight,
+so a perfume's score is a true 0–100 percentage.
 
-### WITH_NOTES (when liked notes >= 2)
-| Dimension | Weight | Total Possible |
-|-----------|--------|----------------|
-| NOTES | 25 | 25 |
-| GENDER | 20 | 20 |
-| TYPE | 15 | 15 |
-| SEASON | 15 | 15 |
-| OCCASION | 15 | 15 |
-| CHARACTERISTICS | 10 | 10 |
-| **Total** | **100** | |
+### WITH_NOTES (liked notes ≥ 1)
+| Dimension | Weight |
+|-----------|--------|
+| NOTES | 30 |
+| TYPE | 20 |
+| GENDER | 20 |
+| SEASON | 15 |
+| OCCASION | 15 |
 
-### WITHOUT_NOTES (when liked notes < 2)
-| Dimension | Weight | Total Possible |
-|-----------|--------|----------------|
-| TYPE | 30 | 30 |
-| GENDER | 20 | 20 |
-| OCCASION | 20 | 20 |
-| SEASON | 15 | 15 |
-| CHARACTERISTICS | 15 | 15 |
-| **Total** | **100** | |
+### WITHOUT_NOTES
+| Dimension | Weight |
+|-----------|--------|
+| TYPE | 35 |
+| GENDER | 25 |
+| SEASON | 20 |
+| OCCASION | 20 |
 
-**Key insight:** Without notes, TYPE becomes the dominant factor (30 vs 15).
+Characteristics (longevity/sillage/intensity) are **not** scored: the quiz
+never asks for them, and scoring them against a fixed default just rewarded
+perfumes with average stats. Perfume `rating` is used only as a sort
+tiebreaker.
+
+---
+
+## Note Matching (`noteMatching.js`)
+
+User-selectable notes are defined in `src/data/fragranceNotes.js`. Each label
+carries `match` terms compared **token-wise** against DB note names:
+
+- A term matches a perfume note when *every token* of the term appears among
+  the note's tokens: `"lemon"` matches `"sicilian lemon"`.
+- No substring false positives: `"Rose"` does not match `"rosemary"`,
+  `"Apple"` does not match `"pineapple"`.
+- Synonyms live in the taxonomy (`Cedar` → `['cedar', 'cedarwood']`,
+  `Moss` → `['moss', 'oakmoss']`).
+
+Family (partial) credit uses the label's category: liking `Rose` gives a
+small boost to perfumes with other Floral-category notes.
 
 ---
 
 ## Scoring Functions
 
-### 1. Gender Score (`calculateGenderScore`)
-
-| Scenario | Score | Reason |
-|----------|-------|--------|
-| Direct match (e.g., feminine→feminine) | weight × 1.0 | "Perfect match for {gender} preferences" |
-| User prefers unisex | weight × 0.8 | "Suitable for all preferences" |
-| Perfume is unisex | weight × 0.7 | "Versatile unisex fragrance" |
-| Opposite gender | weight × 0.1 | null |
-
----
-
-### 2. Type Score (`calculateTypeScore`)
-
-**Direct match:** Full weight
-
-**Family match (70% weight):** Uses type families:
-```javascript
-typeFamilies = {
-  floral: ['floral', 'floral fresh', 'floral woody', 'floral oriental'],
-  fresh: ['fresh', 'citrus', 'aquatic', 'aromatic', 'green'],
-  woody: ['woody', 'floral woody', 'spicy woody', 'oriental woody', 'cedar'],
-  oriental: ['oriental', 'spicy oriental', 'floral oriental', 'oriental woody'],
-  spicy: ['spicy', 'spicy woody', 'spicy oriental']
-}
-```
-
-**Woody fallback (50% weight):** If user prefers woody and perfume contains woody notes (cedar, sandalwood, oud, vetiver, patchouli), gives partial credit even if type doesn't match.
-
----
-
-### 3. Season Score (`calculateSeasonScore`)
-
+### Gender
 | Scenario | Score |
 |----------|-------|
 | Direct match | weight × 1.0 |
-| Perfume is "all seasons" | weight × 0.7 |
-| Adjacent season match | weight × 0.5 |
-| No match | 0 |
+| Perfume is unisex | weight × 0.8 |
+| User prefers unisex, perfume is gendered | weight × 0.6 |
+| Opposite gender | 0 (plus −20 penalty) |
 
-**Adjacent seasons:**
-- winter ↔ spring ↔ summer ↔ fall ↔ winter (circular)
+### Type
+| Scenario | Score |
+|----------|-------|
+| Direct match | weight × 1.0 |
+| Neighbour on the fragrance wheel (`TYPE_NEIGHBORS`) | weight × 0.5 |
+| Otherwise | 0 |
 
----
+Wheel: fresh ↔ floral ↔ oriental ↔ spicy ↔ woody ↔ leather.
 
-### 4. Occasion Score (`calculateOccasionScore`)
+### Season
+| Scenario | Score |
+|----------|-------|
+| Season listed | weight × 1.0 |
+| `'all'` seasons | weight × 0.75 |
+| Adjacent season | weight × 0.4 |
+| Opposite season (and preferred not listed) | 0 (plus −15 penalty) |
 
-**Important mapping (quiz → database):**
-```javascript
-occasionMap = {
-  'daily': 'casual',  // KEY: Quiz says "daily", DB says "casual"
-  'work': 'work',
-  'evening': 'evening',
-  'special': 'special',
-  'date': 'date',
-  'outdoor': 'outdoor'
-}
-```
+### Occasion
+Quiz ids **and** DB tags are both mapped onto one canonical set
+(`OCCASION_SYNONYMS`): casual, work, evening, special, date, outdoor.
+DB tags like `office`, `business`, `formal`, `beach`, `sport` all resolve.
+Score = (matched canonical occasions / requested) × weight.
 
-**Scoring formula:**
-```
-totalScore = (directScore × 0.8 + groupScore × 0.2) × weight
-```
+### Notes
+Each liked note contributes its best match:
+- direct hit: 1.0 (top), 0.95 (middle), 0.85 (base)
+- family-only match: 0.4
+- nothing: 0
 
-**Occasion groups for partial matching:**
-```javascript
-occasionGroups = {
-  casual: ['daily', 'casual', 'work', 'office'],
-  formal: ['evening', 'formal', 'special'],
-  outdoor: ['sport', 'beach', 'vacation', 'outdoor']
-}
-```
-
----
-
-### 5. Notes Score (`calculateNotesScore`)
-
-Most complex scoring function. Uses two matching strategies:
-
-#### A. Direct Matching (70% of notes weight)
-Checks if user's liked note appears in perfume's notes (case-insensitive substring match).
-
-**Note position weights:**
-- Top notes: 1.2×
-- Middle notes: 1.0×
-- Base notes: 0.8×
-
-#### B. Family Matching (30% of notes weight)
-If user's liked note belongs to a note group, checks if perfume has ANY note from that group.
-
-**Note Groups:**
-```javascript
-noteGroups = {
-  citrus: ['bergamot', 'lemon', 'orange', 'grapefruit', 'lime', 'mandarin', 'yuzu'],
-  floral: ['rose', 'jasmine', 'lavender', 'violet', 'iris', 'lily', 'orange blossom'],
-  woody: ['sandalwood', 'cedar', 'oud', 'vetiver', 'patchouli', 'pine'],
-  oriental: ['vanilla', 'amber', 'musk', 'incense', 'benzoin', 'myrrh'],
-  fresh: ['mint', 'marine notes', 'aquatic', 'ocean', 'sea salt', 'cucumber'],
-  fruity: ['apple', 'pear', 'peach', 'berry', 'coconut', 'fig'],
-  spicy: ['cinnamon', 'cardamom', 'pepper', 'clove', 'nutmeg'],
-  gourmand: ['chocolate', 'coffee', 'caramel', 'honey', 'almond'],
-  green: ['grass', 'tea', 'bamboo', 'leaf', 'moss'],
-  leather: ['leather', 'suede', 'tobacco']
-}
-```
-
-**Formula:**
-```javascript
-normalizedScore = (
-  (directScore / likedNotesCount) × 0.7 +
-  (familyScore / likedNotesCount) × 0.3
-) × NOTES_WEIGHT
-```
+Score = average across liked notes × weight (so it can never exceed the
+dimension weight).
 
 ---
 
-### 6. Characteristics Score (`calculateCharacteristicsScore`)
+## Filtering & Results
 
-Compares intensity, longevity, sillage (each 1-10 scale).
-
-| Difference | Score per characteristic |
-|------------|-------------------------|
-| ≤ 1 | weight/3 × 1.0 |
-| ≤ 2 | weight/3 × 0.5 |
-| > 2 | 0 |
-
-**Default user preferences:** 5/5/5 (middle values) - quiz doesn't ask about these yet.
-
----
-
-## Penalties
-
-Applied AFTER all positive scores are calculated.
-
-### Season Mismatch Penalties
-| Condition | Penalty |
-|-----------|---------|
-| Perfume has opposite season (summer↔winter, spring↔fall) | -15 |
-| Perfume missing preferred season entirely | -5 |
-| Exception: Perfume is "all seasons" | No penalty |
-
-### Gender Mismatch Penalty
-| Condition | Penalty |
-|-----------|---------|
-| User is specific gender AND perfume is opposite specific gender | -25 |
-| Either is unisex | No penalty |
-
----
-
-## Bonuses
-
-| Condition | Bonus |
-|-----------|-------|
-| 4+ dimensions have positive scores | +5 ("Well-rounded match") |
-
----
-
-## Filtering
-
-### 1. Disliked Notes Filter (Hard filter)
-Perfumes are COMPLETELY EXCLUDED if any of their notes (top/middle/base) contain a user's disliked note (case-insensitive substring match).
-
-```javascript
-// This perfume is filtered out:
-perfume.notes.base = ['vanilla', 'musk']
-user.disliked = ['Vanilla']  // Match!
-```
-
-### 2. Score Threshold
-Only perfumes with `score > 20` pass to final results.
-
-**Note:** This was lowered from 30 to be more inclusive.
-
----
-
-## Final Output
-
-```javascript
-{
-  ...perfumeData,
-  score: number,        // 0-100 (rounded)
-  matchReasons: string[] // Human-readable reasons shown in UI
-}
-```
-
-Returns top 3 perfumes sorted by score descending.
+1. **Disliked notes** are a hard filter (token matching, so `Rose` no longer
+   removes rosemary perfumes).
+2. **Threshold:** results need score > 20.
+3. **Top 3** by score (rating breaks ties).
+4. **Backfill:** if fewer than 3 remain, fill first from clean perfumes below
+   the threshold, then from disliked-note perfumes with a −25 penalty and an
+   explicit "contains a note you asked to avoid" match reason. The user
+   always gets 3 results.
+5. **Honesty labels:** when a result's type differs from the requested type
+   (thin paths, e.g. orientals in summer), the first match reason says so
+   instead of pretending it was a perfect fit.
 
 ---
 
 ## Debugging
 
-Console logs are built in. Search for `[Recommendation Engine]` in console:
-- Starting preferences summary
-- Weight system being used
-- First 10 scores before filtering
-- Count of scores above threshold
-- Final matches with scores
-
----
-
-## Tuning Guide
-
-### To make notes more/less important:
-Edit `WEIGHTS.WITH_NOTES.NOTES` (currently 25)
-
-### To change minimum match quality:
-Edit `scoreThreshold` on line 112 (currently 20)
-
-### To add a new fragrance type:
-1. Add to `typeFamilies` object in `calculateTypeScore()`
-2. Add perfumes with that type to `perfumes.js`
-
-### To add a new note family:
-Add to `noteGroups` object at top of file
-
-### To change how strict gender matching is:
-- Adjust multipliers in `calculateGenderScore()` (0.8, 0.7, 0.1)
-- Adjust gender penalty (currently -25)
-
-### To change seasonal tolerance:
-- Adjust adjacent season multiplier (currently 0.5)
-- Adjust opposite season penalty (currently -15)
-- Adjust missing season penalty (currently -5)
-
----
-
-## Edge Cases
-
-1. **User skips notes:** Uses WITHOUT_NOTES weights, notes scoring is skipped entirely
-
-2. **User selects only 1 note:** Still uses WITHOUT_NOTES weights (requires >= 2)
-
-3. **All perfumes filtered out:** Returns empty array (Results.jsx redirects to quiz)
-
-4. **Perfume has season: ['all']:** Gets 70% of season score, immune to season penalties
-
-5. **No occasions selected:** Occasion scoring is skipped (weight redistributed implicitly)
-
-6. **Characteristics not in quiz:** Defaults to 5/5/5, most perfumes will partially match
+Search the browser console for `[Recommendation Engine]` — it logs the merged
+preferences, the active weight set, and the final results.

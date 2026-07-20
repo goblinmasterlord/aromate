@@ -1,523 +1,279 @@
 // recommendationEngine.js
 import { perfumes } from '../data/perfumes';
+import { noteMatchesLabel, noteMatchesFamily } from './noteMatching';
 
+// Each weight set sums to 100, and every dimension score is capped at its
+// weight, so a perfume's score is a real 0-100 percentage.
 const WEIGHTS = {
   WITH_NOTES: {
-    NOTES: 25,      // Adjusted to make room for gender
-    SEASON: 15,     // Adjusted
-    OCCASION: 15,   // Adjusted
-    TYPE: 15,       // Type preference
-    GENDER: 20,     // Gender is important for personal preference
-    CHARACTERISTICS: 10
+    NOTES: 30,
+    TYPE: 20,
+    GENDER: 20,
+    SEASON: 15,
+    OCCASION: 15
   },
   WITHOUT_NOTES: {
-    SEASON: 15,
-    OCCASION: 20,
-    TYPE: 30,
-    GENDER: 20,     // Gender is important even without notes
-    CHARACTERISTICS: 15
+    TYPE: 35,
+    GENDER: 25,
+    SEASON: 20,
+    OCCASION: 20
   }
 };
 
-// Add comprehensive note groups at the top of the file
-const noteGroups = {
-  citrus: ['bergamot', 'lemon', 'orange', 'grapefruit', 'lime', 'mandarin', 'yuzu'],
-  floral: ['rose', 'jasmine', 'lavender', 'violet', 'iris', 'lily', 'orange blossom'],
-  woody: ['sandalwood', 'cedar', 'oud', 'vetiver', 'patchouli', 'pine'],
-  oriental: ['vanilla', 'amber', 'musk', 'incense', 'benzoin', 'myrrh'],
-  fresh: ['mint', 'marine notes', 'aquatic', 'ocean', 'sea salt', 'cucumber'],
-  fruity: ['apple', 'pear', 'peach', 'berry', 'coconut', 'fig'],
-  spicy: ['cinnamon', 'cardamom', 'pepper', 'clove', 'nutmeg'],
-  gourmand: ['chocolate', 'coffee', 'caramel', 'honey', 'almond'],
-  green: ['grass', 'tea', 'bamboo', 'leaf', 'moss'],
-  leather: ['leather', 'suede', 'tobacco']
-};
+const RESULT_COUNT = 3;
+const SCORE_THRESHOLD = 20;
+const DISLIKED_BACKFILL_PENALTY = 25;
 
 export const getRecommendations = (preferences = {}) => {
-  console.log('[Recommendation Engine] Starting with preferences:', {
+  const merged = {
     gender: preferences.gender || 'unisex',
-    type: preferences.type,
-    season: preferences.season,
-    occasionCount: preferences.occasion?.length || 0,
-    likedNotes: preferences.notes?.liked?.length || 0,
-    dislikedNotes: preferences.notes?.disliked?.length || 0
-  });
-
-  // Determine which weight system to use - require at least 2 liked notes
-  const activeWeights = preferences.notes?.liked?.length > 1 
-    ? WEIGHTS.WITH_NOTES 
-    : WEIGHTS.WITHOUT_NOTES;
-  
-  console.log('[Recommendation Engine] Weight system:', preferences.notes?.liked?.length > 1 ? 'WITH_NOTES' : 'WITHOUT_NOTES');
-
-  const defaultPreferences = {
-    characteristics: {
-      intensity: 5,
-      longevity: 5,
-      sillage: 5
-    },
+    type: preferences.type || '',
+    season: preferences.season || '',
+    occasion: preferences.occasion || [],
     notes: {
-      liked: [],
-      disliked: []
-    },
-    type: '',
-    season: '',
-    occasion: [],
-    gender: 'unisex'
-  };
-
-  const mergedPreferences = {
-    ...defaultPreferences,
-    ...preferences,
-    characteristics: {
-      ...defaultPreferences.characteristics,
-      ...(preferences.characteristics || {})
-    },
-    notes: {
-      ...defaultPreferences.notes,
-      ...(preferences.notes || {})
+      liked: preferences.notes?.liked || [],
+      disliked: preferences.notes?.disliked || []
     }
   };
 
-  // Removed verbose merged preferences log
+  const activeWeights = merged.notes.liked.length > 0
+    ? WEIGHTS.WITH_NOTES
+    : WEIGHTS.WITHOUT_NOTES;
 
-  const recommendations = perfumes.map(perfume => {
-    // Scoring each perfume
-    const score = calculatePerfumeScore(perfume, mergedPreferences, activeWeights);
-    
-    // Score is already out of 100, no normalization needed
-    const normalizedScore = score.score;
-    
-    return {
-      ...perfume,
-      score: normalizedScore,
-      matchReasons: score.matchReasons
-    };
+  console.log('[Recommendation Engine] Preferences:', merged,
+    '| weights:', merged.notes.liked.length > 0 ? 'WITH_NOTES' : 'WITHOUT_NOTES');
+
+  const scored = perfumes.map(perfume => {
+    const { score, matchReasons } = calculatePerfumeScore(perfume, merged, activeWeights);
+    return { ...perfume, score, matchReasons };
   });
 
-  // Filter out perfumes with disliked notes first
-  const filteredRecommendations = recommendations.filter(perfume => {
-    const allPerfumeNotes = [...perfume.notes.top, ...perfume.notes.middle, ...perfume.notes.base];
-    return !mergedPreferences.notes.disliked.some(note => 
-      allPerfumeNotes.some(perfumeNote => 
-        perfumeNote.toLowerCase().includes(note.toLowerCase())
-      )
+  const hasDislikedNote = (perfume) => {
+    const allNotes = [...perfume.notes.top, ...perfume.notes.middle, ...perfume.notes.base];
+    return merged.notes.disliked.some(label =>
+      allNotes.some(note => noteMatchesLabel(note, label))
     );
-  });
+  };
 
-  console.log('[Recommendation Engine] Scores before filtering:', 
-    recommendations.map(r => `${r.name}: ${r.score}`).slice(0, 10).join(', '));
+  const clean = scored.filter(p => !hasDislikedNote(p));
+  const excluded = scored.filter(p => hasDislikedNote(p));
 
-  // Log filtered recommendations
-  const scoreThreshold = 20; // Lowered from 30 to be more inclusive
-  const finalRecommendations = filteredRecommendations
-    .filter(p => p.score > scoreThreshold)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
-  
-  console.log(`[Recommendation Engine] Scores > ${scoreThreshold}:`, filteredRecommendations.filter(p => p.score > scoreThreshold).length);
+  const results = clean
+    .filter(p => p.score > SCORE_THRESHOLD)
+    .sort((a, b) => b.score - a.score || b.rating - a.rating)
+    .slice(0, RESULT_COUNT);
 
-  console.log(`[Recommendation Engine] Found ${finalRecommendations.length} matches:`, 
-    finalRecommendations.map(r => `${r.name} (${r.score}%)`).join(', '));
+  // Backfill so heavy dislike lists can't leave the user with an empty page.
+  // First from clean-but-low-scoring perfumes, then (clearly flagged) from
+  // perfumes containing a disliked note.
+  if (results.length < RESULT_COUNT) {
+    const belowThreshold = clean
+      .filter(p => p.score <= SCORE_THRESHOLD)
+      .sort((a, b) => b.score - a.score || b.rating - a.rating);
+    for (const p of belowThreshold) {
+      if (results.length >= RESULT_COUNT) break;
+      results.push(p);
+    }
+  }
+  if (results.length < RESULT_COUNT) {
+    const penalized = excluded
+      .map(p => ({
+        ...p,
+        score: Math.max(0, p.score - DISLIKED_BACKFILL_PENALTY),
+        matchReasons: [
+          'Contains a note you asked to avoid — shown because few perfumes matched everything else',
+          ...p.matchReasons
+        ]
+      }))
+      .sort((a, b) => b.score - a.score || b.rating - a.rating);
+    for (const p of penalized) {
+      if (results.length >= RESULT_COUNT) break;
+      results.push(p);
+    }
+  }
 
-  return finalRecommendations;
+  // Be honest when a result isn't the fragrance family the user asked for
+  // (this happens on thin paths, e.g. orientals in summer).
+  const final = results.map(p =>
+    merged.type && p.type !== merged.type
+      ? {
+          ...p,
+          matchReasons: [
+            `A ${p.type} fragrance rather than ${merged.type} — recommended for its strong match on your other preferences`,
+            ...p.matchReasons.filter(r => !r.startsWith('Matches your preferred'))
+          ]
+        }
+      : p
+  );
+
+  console.log('[Recommendation Engine] Results:',
+    final.map(r => `${r.name} (${r.score})`).join(', '));
+
+  return final;
 };
 
 const calculatePerfumeScore = (perfume, preferences, weights) => {
-  // Calculate score for each perfume
-  
   let score = 0;
   const matchReasons = [];
-  const scoreBreakdown = {};
 
-  // Gender matching - CRITICAL for personalization
-  if (preferences.gender && weights.GENDER) {
-    const genderScore = calculateGenderScore(perfume, preferences.gender, weights.GENDER);
-    score += genderScore.score;
-    scoreBreakdown.gender = genderScore.score;
-    if (genderScore.reason) matchReasons.push(genderScore.reason);
+  const add = ({ score: s, reason }) => {
+    score += s;
+    if (reason) matchReasons.push(reason);
+  };
+
+  if (weights.GENDER) add(calculateGenderScore(perfume, preferences.gender, weights.GENDER));
+  if (preferences.type && weights.TYPE) add(calculateTypeScore(perfume, preferences.type, weights.TYPE));
+  if (preferences.season && weights.SEASON) add(calculateSeasonScore(perfume, preferences.season, weights.SEASON));
+  if (preferences.occasion.length > 0 && weights.OCCASION) {
+    add(calculateOccasionScore(perfume, preferences.occasion, weights.OCCASION));
+  }
+  if (preferences.notes.liked.length > 0 && weights.NOTES) {
+    add(calculateNotesScore(perfume, preferences.notes.liked, weights.NOTES));
   }
 
-  // Type matching (moved up for priority)
-  if (preferences.type) {
-    const typeScore = calculateTypeScore(perfume, preferences.type, weights.TYPE);
-    score += typeScore.score;
-    scoreBreakdown.type = typeScore.score;
-    if (typeScore.reason) matchReasons.push(typeScore.reason);
-    // Type score calculated
-  }
-
-  // Season matching
-  if (preferences.season) {
-    const seasonScore = calculateSeasonScore(perfume, preferences.season, weights.SEASON);
-    score += seasonScore.score;
-    scoreBreakdown.season = seasonScore.score;
-    if (seasonScore.reason) matchReasons.push(seasonScore.reason);
-  }
-
-  // Characteristics matching
-  const characteristicsScore = calculateCharacteristicsScore(
-    perfume, 
-    preferences.characteristics,
-    weights.CHARACTERISTICS
-  );
-  score += characteristicsScore.score;
-  scoreBreakdown.characteristics = characteristicsScore.score;
-  if (characteristicsScore.reason) matchReasons.push(characteristicsScore.reason);
-
-  // Occasion matching
-  if (preferences.occasion?.length > 0) {
-    const occasionScore = calculateOccasionScore(
-      perfume, 
-      preferences.occasion,
-      weights.OCCASION
-    );
-    score += occasionScore.score;
-    scoreBreakdown.occasion = occasionScore.score;
-    if (occasionScore.reason) matchReasons.push(occasionScore.reason);
-  }
-
-  // Notes matching - CRITICAL FIX: This was missing!
-  if (preferences.notes?.liked?.length > 0 && weights.NOTES) {
-    const notesScore = calculateNotesScore(perfume, preferences.notes, weights.NOTES);
-    score += notesScore.score;
-    scoreBreakdown.notes = notesScore.score;
-    if (notesScore.reason) matchReasons.push(notesScore.reason);
-    // Notes score calculated
-  }
-
-  // Apply penalties for mismatches
+  // Penalties for hard mismatches
   let penalties = 0;
-  
-  // Penalty for wrong season (opposite seasons)
+
   if (preferences.season) {
-    const oppositeSeasons = {
-      'summer': 'winter',
-      'winter': 'summer',
-      'spring': 'fall',
-      'fall': 'spring'
-    };
-    if (perfume.season.includes(oppositeSeasons[preferences.season]) && 
+    const oppositeSeasons = { summer: 'winter', winter: 'summer', spring: 'fall', fall: 'spring' };
+    if (perfume.season.includes(oppositeSeasons[preferences.season]) &&
+        !perfume.season.includes(preferences.season) &&
         !perfume.season.includes('all')) {
-      penalties += 15; // Increased from 10 - stronger seasonal mismatch penalty
-    }
-    
-    // Additional penalty if perfume doesn't include the preferred season at all
-    if (!perfume.season.includes(preferences.season) && !perfume.season.includes('all')) {
-      penalties += 5; // Missing preferred season penalty
+      penalties += 15;
     }
   }
 
-  // Gender mismatch penalty - only for strong opposite preferences
-  if (preferences.gender && preferences.gender !== 'unisex' && perfume.gender !== 'unisex') {
-    if (preferences.gender !== perfume.gender) {
-      penalties += 25; // Strong penalty for opposite gender when both have specific gender
-    }
+  if (preferences.gender !== 'unisex' && perfume.gender !== 'unisex' &&
+      preferences.gender !== perfume.gender) {
+    penalties += 20;
   }
 
-  // Apply penalties
-  score = Math.max(0, score - penalties);
-  
-  // Bonus for matching multiple dimensions well
-  const dimensionsMatched = Object.values(scoreBreakdown).filter(s => s > 0).length;
-  if (dimensionsMatched >= 4) {
-    score += 5; // Bonus for well-rounded match
-    matchReasons.push('Well-rounded match across preferences');
-  }
-
-  // Return final score
   return {
-    score: Math.round(score),
-    matchReasons: matchReasons.filter(reason => reason)
+    score: Math.round(Math.max(0, score - penalties)),
+    matchReasons
   };
 };
 
 const calculateGenderScore = (perfume, preferredGender, weight) => {
-  // Direct match
   if (perfume.gender === preferredGender) {
-    return {
-      score: weight,
-      reason: `Perfect match for ${preferredGender} preferences`
-    };
+    return { score: weight, reason: `Perfect match for ${preferredGender} preferences` };
   }
-
-  // Unisex preference matches all
-  if (preferredGender === 'unisex') {
-    return {
-      score: weight * 0.8, // Slight reduction as some people prefer specifically gendered scents
-      reason: 'Suitable for all preferences'
-    };
-  }
-
-  // Unisex perfume matches any preference moderately well
   if (perfume.gender === 'unisex') {
-    return {
-      score: weight * 0.7,
-      reason: 'Versatile unisex fragrance'
-    };
+    return { score: weight * 0.8, reason: 'Versatile unisex fragrance' };
   }
-
-  // Opposite gender is heavily penalized
-  return {
-    score: weight * 0.1, // Very low score but not zero
-    reason: null
-  };
+  if (preferredGender === 'unisex') {
+    // User wants unisex but the perfume is gendered
+    return { score: weight * 0.6, reason: null };
+  }
+  return { score: 0, reason: null };
 };
 
-const calculateNotesScore = (perfume, preferredNotes, weight) => {
-  // Use full weight, not adjusted
-  const NOTES_WEIGHT = weight;
+// Neighbours on the fragrance wheel get partial credit.
+const TYPE_NEIGHBORS = {
+  fresh: ['floral'],
+  floral: ['fresh', 'oriental'],
+  oriental: ['floral', 'spicy'],
+  spicy: ['oriental', 'woody'],
+  woody: ['spicy', 'leather'],
+  leather: ['woody', 'spicy']
+};
 
-  // Logging object to track scoring details
-  const scoring = {
-    perfume: perfume.name,
-    directMatches: [],
-    familyMatches: [],
-    weights: {
-      direct: 0,
-      family: 0
-    }
-  };
+const calculateTypeScore = (perfume, preferredType, weight) => {
+  const perfumeType = perfume.type?.toLowerCase() || '';
+  const preferred = preferredType.toLowerCase();
 
-  const allPerfumeNotes = [
-    ...perfume.notes.top.map(note => ({ note, weight: 1.2, type: 'top' })),
-    ...perfume.notes.middle.map(note => ({ note, weight: 1.0, type: 'middle' })),
-    ...perfume.notes.base.map(note => ({ note, weight: 0.8, type: 'base' }))
-  ];
-
-  let familyScore = 0;
-  let directScore = 0;
-  let matchedNotes = [];
-
-  preferredNotes.liked.forEach(preferredNote => {
-    // Direct matching
-    allPerfumeNotes.forEach(({ note, weight, type }) => {
-      if (note.toLowerCase().includes(preferredNote.toLowerCase())) {
-        directScore += weight;
-        matchedNotes.push(note);
-        scoring.directMatches.push({
-          preferred: preferredNote,
-          matched: note,
-          weight,
-          type
-        });
-      }
-    });
-
-    // Family matching - replace the existing noteFamilies logic
-    Object.entries(noteGroups).forEach(([family, notes]) => {
-      const preferredNoteInFamily = notes.some(n => 
-        n.toLowerCase().includes(preferredNote.toLowerCase())
-      );
-      
-      if (preferredNoteInFamily) {
-        const familyMatches = allPerfumeNotes.filter(({ note }) =>
-          notes.some(n => note.toLowerCase().includes(n.toLowerCase()))
-        );
-        
-        if (familyMatches.length > 0) {
-          familyScore += 0.5 * familyMatches.length;
-          scoring.familyMatches.push({
-            family,
-            preferredNote,
-            matches: familyMatches.map(m => m.note)
-          });
-        }
-      }
-    });
-  });
-
-  const normalizedScore = (
-    (directScore / Math.max(1, preferredNotes.liked.length) * 0.7 +  // Increased direct match importance
-    familyScore / Math.max(1, preferredNotes.liked.length) * 0.3) *   // Reduced family match importance
-    NOTES_WEIGHT
-  );
-
-  scoring.weights.direct = directScore;
-  scoring.weights.family = familyScore;
-  scoring.finalScore = normalizedScore;
-
-  // Note matching completed
-
-  return {
-    score: normalizedScore,
-    reason: matchedNotes.length > 0 
-      ? `Contains notes similar to your preferences: ${[...new Set(matchedNotes)].join(', ')}`
-      : null
-  };
+  if (perfumeType === preferred) {
+    return { score: weight, reason: `Matches your preferred ${preferredType} fragrance type` };
+  }
+  if (TYPE_NEIGHBORS[preferred]?.includes(perfumeType)) {
+    return { score: weight * 0.5, reason: `A ${perfumeType} fragrance, close to your ${preferredType} preference` };
+  }
+  return { score: 0, reason: null };
 };
 
 const calculateSeasonScore = (perfume, preferredSeason, weight) => {
   if (perfume.season.includes(preferredSeason)) {
-    return {
-      score: weight,
-      reason: `Perfect for ${preferredSeason}`
-    };
+    return { score: weight, reason: `Perfect for ${preferredSeason}` };
   }
-
   if (perfume.season.includes('all')) {
-    return {
-      score: weight * 0.7,
-      reason: 'Versatile fragrance suitable for all seasons'
-    };
+    return { score: weight * 0.75, reason: 'Versatile fragrance suitable for all seasons' };
   }
 
-  // Adjacent season matching with reduced score
   const seasons = ['winter', 'spring', 'summer', 'fall'];
-  const preferredIndex = seasons.indexOf(preferredSeason);
-  const adjacentSeasons = [
-    seasons[(preferredIndex - 1 + 4) % 4],
-    seasons[(preferredIndex + 1) % 4]
-  ];
-
-  if (perfume.season.some(s => adjacentSeasons.includes(s))) {
-    return {
-      score: weight * 0.5,
-      reason: 'Adaptable to your preferred season'
-    };
+  const i = seasons.indexOf(preferredSeason);
+  const adjacent = [seasons[(i + 3) % 4], seasons[(i + 1) % 4]];
+  if (perfume.season.some(s => adjacent.includes(s))) {
+    return { score: weight * 0.4, reason: null };
   }
-
   return { score: 0, reason: null };
 };
 
-const calculateCharacteristicsScore = (perfume, characteristics, weight) => {
-  const { intensity = 5, longevity = 5, sillage = 5 } = characteristics || {};
-  
-  let score = 0;
-  let matchedCharacteristics = [];
+// Both the quiz's occasion ids and the database's free-form occasion tags
+// are mapped onto one canonical set before comparing.
+const OCCASION_SYNONYMS = {
+  casual: ['casual', 'daily', 'day', 'everyday'],
+  work: ['work', 'office', 'business', 'professional'],
+  evening: ['evening', 'night', 'party', 'formal'],
+  special: ['special', 'formal', 'wedding', 'celebration'],
+  date: ['date', 'romantic', 'cozy'],
+  outdoor: ['outdoor', 'sport', 'beach', 'vacation', 'active']
+};
 
-  // Intensity match
-  const intensityDiff = Math.abs(perfume.characteristics.intensity - intensity);
-  if (intensityDiff <= 1) {
-    score += weight / 3;
-    matchedCharacteristics.push('intensity');
-  } else if (intensityDiff <= 2) {
-    score += (weight / 3) * 0.5;
-  }
-
-  // Longevity match
-  const longevityDiff = Math.abs(perfume.characteristics.longevity - longevity);
-  if (longevityDiff <= 1) {
-    score += weight / 3;
-    matchedCharacteristics.push('longevity');
-  } else if (longevityDiff <= 2) {
-    score += (weight / 3) * 0.5;
-  }
-
-  // Sillage match
-  const sillageDiff = Math.abs(perfume.characteristics.sillage - sillage);
-  if (sillageDiff <= 1) {
-    score += weight / 3;
-    matchedCharacteristics.push('sillage');
-  } else if (sillageDiff <= 2) {
-    score += (weight / 3) * 0.5;
-  }
-
-  let reason = null;
-  if (matchedCharacteristics.length > 0) {
-    reason = `Matches your preferred ${matchedCharacteristics.join(' and ')}`;
-  }
-
-  return { score, reason };
+const toCanonicalOccasions = (values) => {
+  const canonical = new Set();
+  values.forEach(value => {
+    const v = String(value).toLowerCase();
+    Object.entries(OCCASION_SYNONYMS).forEach(([key, synonyms]) => {
+      if (synonyms.includes(v)) canonical.add(key);
+    });
+  });
+  return canonical;
 };
 
 const calculateOccasionScore = (perfume, preferredOccasions, weight) => {
-  // Map quiz occasions to database occasions
-  const occasionMap = {
-    'daily': 'casual',  // Quiz uses 'daily', database uses 'casual'
-    'work': 'work',
-    'evening': 'evening',
-    'special': 'special',
-    'date': 'date',
-    'outdoor': 'outdoor'
-  };
+  const wanted = toCanonicalOccasions(preferredOccasions);
+  const offered = toCanonicalOccasions(perfume.occasion);
+  if (wanted.size === 0) return { score: 0, reason: null };
 
-  // Map preferences to database terms
-  const mappedPreferences = preferredOccasions.map(occ => occasionMap[occ] || occ);
-  
-  // Count direct matches
-  const matches = mappedPreferences.filter(occasion => 
-    perfume.occasion.includes(occasion)
-  );
-
-  const occasionGroups = {
-    casual: ['daily', 'casual', 'day', 'work', 'office'],
-    formal: ['evening', 'formal', 'special', 'date'],
-    outdoor: ['sport', 'beach', 'vacation', 'outdoor'],
-  };
-
-  let groupMatches = 0;
-  Object.values(occasionGroups).forEach(group => {
-    if (preferredOccasions.some(po => group.includes(po)) &&
-        perfume.occasion.some(po => group.includes(po))) {
-      groupMatches++;
-    }
-  });
-
-  const directScore = (matches.length / preferredOccasions.length) * 0.8;
-  const groupScore = (groupMatches / Object.keys(occasionGroups).length) * 0.2;
-  const totalScore = (directScore + groupScore) * weight;
-
+  const matched = [...wanted].filter(o => offered.has(o));
   return {
-    score: totalScore,
-    reason: matches.length > 0 
-      ? `Suitable for ${matches.join(' and ')}` 
-      : groupMatches > 0 
-        ? 'Suitable for similar occasions'
-        : null
+    score: (matched.length / wanted.size) * weight,
+    reason: matched.length > 0 ? `Suitable for ${matched.join(' and ')}` : null
   };
 };
 
-const calculateTypeScore = (perfume, preferredType, weight) => {
-  // Check type match
-  
-  // Direct match
-  if (perfume.type?.toLowerCase() === preferredType.toLowerCase()) {
-    return {
-      score: weight,
-      reason: `Matches your preferred ${preferredType} fragrance type`
-    };
-  }
+const calculateNotesScore = (perfume, likedLabels, weight) => {
+  const allNotes = [
+    ...perfume.notes.top.map(note => ({ note, position: 1.0 })),
+    ...perfume.notes.middle.map(note => ({ note, position: 0.95 })),
+    ...perfume.notes.base.map(note => ({ note, position: 0.85 }))
+  ];
 
-  // Type families for partial matching
-  const typeFamilies = {
-    floral: ['floral', 'floral fresh', 'floral woody', 'floral oriental'],
-    fresh: ['fresh', 'citrus', 'aquatic', 'aromatic', 'green'],
-    woody: ['woody', 'floral woody', 'spicy woody', 'oriental woody', 'cedar'],
-    oriental: ['oriental', 'spicy oriental', 'floral oriental', 'oriental woody'],
-    spicy: ['spicy', 'spicy woody', 'spicy oriental']
-  };
+  const matchedNotes = [];
+  let total = 0;
 
-  // Check for family match
-  const family = Object.entries(typeFamilies).find(([key, types]) => 
-    types.includes(preferredType.toLowerCase())
-  );
-
-  if (family && typeFamilies[family[0]].some(type => 
-    perfume.type?.toLowerCase().includes(type)
-  )) {
-    return {
-      score: weight * 0.7,
-      reason: `Similar to your preferred ${preferredType} fragrance type`
-    };
-  }
-
-  // Additional check for woody perfumes based on notes
-  if (preferredType.toLowerCase() === 'woody') {
-    const allNotes = [
-      ...perfume.notes.top || [],
-      ...perfume.notes.middle || [],
-      ...perfume.notes.base || []
-    ].map(note => note.toLowerCase());
-
-    const woodyNotes = ['cedar', 'sandalwood', 'oud', 'vetiver', 'patchouli'];
-    if (woodyNotes.some(note => allNotes.includes(note))) {
-      return {
-        score: weight * 0.5,
-        reason: 'Contains woody notes'
-      };
+  // Each liked note contributes its single best match: full credit for a
+  // direct hit (scaled slightly by pyramid position), partial credit when
+  // the perfume only has something from the same family. Averaging over
+  // liked notes keeps the score capped at the dimension weight.
+  likedLabels.forEach(label => {
+    let best = 0;
+    allNotes.forEach(({ note, position }) => {
+      if (noteMatchesLabel(note, label)) {
+        if (position > best) best = position;
+        if (!matchedNotes.includes(note)) matchedNotes.push(note);
+      }
+    });
+    if (best === 0 && allNotes.some(({ note }) => noteMatchesFamily(note, label))) {
+      best = 0.4;
     }
-  }
+    total += best;
+  });
 
-  return { score: 0, reason: null };
+  return {
+    score: (total / likedLabels.length) * weight,
+    reason: matchedNotes.length > 0
+      ? `Contains notes you love: ${matchedNotes.slice(0, 4).join(', ')}`
+      : null
+  };
 };

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const quizQuestions = [
   {
     id: 'gender',
@@ -20,7 +18,9 @@ export const quizQuestions = [
       { id: 'fresh', label: 'Fresh & Light', icon: '🌱', description: 'Clean, crisp, and energizing scents' },
       { id: 'floral', label: 'Floral', icon: '🌸', description: 'Beautiful blooming flower scents' },
       { id: 'woody', label: 'Woody', icon: '🌳', description: 'Warm and natural wood-based scents' },
-      { id: 'oriental', label: 'Oriental', icon: '✨', description: 'Rich, warm, and exotic scents' }
+      { id: 'oriental', label: 'Oriental', icon: '✨', description: 'Rich, warm, and exotic scents' },
+      { id: 'spicy', label: 'Spicy', icon: '🌶️', description: 'Warm peppery and aromatic spice scents' },
+      { id: 'leather', label: 'Leather & Smoky', icon: '🧥', description: 'Rich leather, tobacco, and smoke' }
     ]
   },
   {
@@ -53,94 +53,6 @@ export const quizQuestions = [
     id: 'notes',
     title: 'Select your fragrance preferences',
     description: 'Choose notes you love and those you\'d rather avoid',
-    type: 'notes-preference',
-    maxSelections: 5
+    type: 'notes-preference'
   }
 ];
-
-export const fragranceNotes = {
-  Citrus: [
-    "Bergamot",
-    "Lemon",
-    "Orange",
-    "Grapefruit",
-    "Lime",
-    "Mandarin",
-    "Yuzu"
-  ],
-  Floral: [
-    "Rose",
-    "Jasmine",
-    "Lavender",
-    "Violet",
-    "Iris",
-    "Lily",
-    "Orange Blossom",
-    "Peony",
-    "Tuberose"
-  ],
-  Woody: [
-    "Sandalwood",
-    "Cedar",
-    "Vetiver",
-    "Oud",
-    "Patchouli",
-    "Pine",
-    "Cypress"
-  ],
-  Oriental: [
-    "Vanilla",
-    "Amber",
-    "Musk",
-    "Incense",
-    "Myrrh",
-    "Benzoin"
-  ],
-  Spicy: [
-    "Cinnamon",
-    "Cardamom",
-    "Black Pepper",
-    "Clove",
-    "Nutmeg",
-    "Saffron"
-  ],
-  Fruity: [
-    "Apple",
-    "Pear",
-    "Peach",
-    "Plum",
-    "Berry",
-    "Coconut",
-    "Fig"
-  ],
-  Green: [
-    "Grass",
-    "Mint",
-    "Basil",
-    "Tea",
-    "Bamboo",
-    "Green Apple",
-    "Sage"
-  ],
-  Gourmand: [
-    "Chocolate",
-    "Coffee",
-    "Caramel",
-    "Honey",
-    "Almond",
-    "Praline"
-  ],
-  Marine: [
-    "Sea Salt",
-    "Ocean Breeze",
-    "Seaweed",
-    "Aquatic Notes"
-  ],
-  Earthy: [
-    "Moss",
-    "Soil",
-    "Leather",
-    "Tobacco",
-    "Mushroom"
-  ]
-}; 

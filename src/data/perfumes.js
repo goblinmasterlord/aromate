@@ -1595,5 +1595,155 @@ export const perfumes = [
       },
       tags: ["spicy", "dark", "resinous", "powerful"],
       rating: 4.5
+    },
+    {
+      id: 66,
+      name: "L'Homme",
+      brand: "Prada",
+      type: "floral",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 105.00,
+      size: "100ml",
+      year: 2016,
+      season: ["spring", "summer"],
+      occasion: ["casual", "work", "daily"],
+      notes: {
+        top: ["neroli", "black pepper", "carrot"],
+        middle: ["iris", "geranium", "violet"],
+        base: ["amber", "cedar", "patchouli"]
+      },
+      characteristics: {
+        longevity: 6,
+        sillage: 5,
+        intensity: 4
+      },
+      tags: ["floral", "iris", "clean", "elegant"],
+      rating: 4.4
+    },
+    {
+      id: 67,
+      name: "Dior Homme Intense",
+      brand: "Dior",
+      type: "floral",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 155.00,
+      size: "100ml",
+      year: 2011,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "special"],
+      notes: {
+        top: ["lavender"],
+        middle: ["iris", "ambrette seeds", "pear"],
+        base: ["vetiver", "cedar"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 7
+      },
+      tags: ["floral", "iris", "powdery", "seductive"],
+      rating: 4.6
+    },
+    {
+      id: 68,
+      name: "Mon Guerlain",
+      brand: "Guerlain",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 125.00,
+      size: "100ml",
+      year: 2017,
+      season: ["spring", "summer", "fall"],
+      occasion: ["evening", "date", "casual"],
+      notes: {
+        top: ["lavender", "bergamot"],
+        middle: ["jasmine sambac", "iris"],
+        base: ["vanilla", "tonka bean", "sandalwood"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 6,
+        intensity: 6
+      },
+      tags: ["oriental", "warm", "elegant", "modern"],
+      rating: 4.5
+    },
+    {
+      id: 69,
+      name: "Vanille Insensée",
+      brand: "Atelier Cologne",
+      type: "oriental",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 135.00,
+      size: "100ml",
+      year: 2011,
+      season: ["spring", "summer"],
+      occasion: ["casual", "work", "daily"],
+      notes: {
+        top: ["lime", "citron", "coriander"],
+        middle: ["jasmine", "oakmoss"],
+        base: ["vanilla", "amber", "vetiver"]
+      },
+      characteristics: {
+        longevity: 6,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["oriental", "vanilla", "fresh", "wearable"],
+      rating: 4.3
+    },
+    {
+      id: 70,
+      name: "For Her",
+      brand: "Narciso Rodriguez",
+      type: "woody",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 120.00,
+      size: "100ml",
+      year: 2006,
+      season: ["fall", "winter"],
+      occasion: ["evening", "date", "work"],
+      notes: {
+        top: ["rose", "osmanthus"],
+        middle: ["musk", "amber"],
+        base: ["sandalwood", "vetiver"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 7,
+        intensity: 6
+      },
+      tags: ["woody", "musky", "sensual", "signature"],
+      rating: 4.5
+    },
+    {
+      id: 71,
+      name: "Nomade",
+      brand: "Chloé",
+      type: "woody",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 115.00,
+      size: "75ml",
+      year: 2018,
+      season: ["spring", "summer", "fall"],
+      occasion: ["casual", "work", "outdoor"],
+      notes: {
+        top: ["plum", "bergamot", "lemon"],
+        middle: ["freesia", "rose", "jasmine"],
+        base: ["oakmoss", "sandalwood", "amber"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 5
+      },
+      tags: ["woody", "chypre", "fresh", "confident"],
+      rating: 4.4
     }
   ];
