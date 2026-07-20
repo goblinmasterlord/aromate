@@ -30,9 +30,10 @@ src/
 │   └── Admin.jsx         # CRUD interface for perfumes
 ├── utils/
 │   ├── recommendationEngine.js  # CORE: Scoring algorithm
-│   └── noteMatching.js          # Token-based note matching helpers
+│   ├── noteMatching.js          # Token-based note matching helpers
+│   └── pathSupply.js            # "Can the catalog serve this combo?" helpers
 ├── data/
-│   ├── perfumes.js              # Perfume database (70 entries)
+│   ├── perfumes.js              # Perfume database (75 entries)
 │   ├── quizQuestions.jsx        # Quiz structure
 │   ├── fragranceNotes.js        # SOURCE OF TRUTH: note taxonomy + match terms
 │   ├── preferenceDetails.js     # Educational text for preferences
@@ -76,7 +77,14 @@ src/
 - Note matching is **token-based** via `src/utils/noteMatching.js` — "Rose" matches "turkish rose" but NOT "rosemary". Synonyms live in `fragranceNotes.js` `match` arrays (e.g. Cedar → cedar, cedarwood).
 - Quiz occasion ids AND database occasion tags are both mapped to one canonical set (casual/work/evening/special/date/outdoor) via `OCCASION_SYNONYMS` — DB tags like `office`, `formal`, `beach`, `sport` resolve correctly.
 - Family matching gives 0.4 partial credit (a liked Floral note boosts perfumes with other floral notes).
-- Characteristics (longevity/sillage/intensity) are NOT scored — the quiz doesn't ask for them. Perfume `rating` is only a sort tiebreaker.
+- Characteristics (longevity/sillage/intensity) are NOT scored as preferences — the quiz doesn't ask for them. Perfume `rating` is only a sort tiebreaker. BUT intensity is used as a seasonal *wearability guard*: summer penalizes intensity ≥ 8, winter penalizes intensity ≤ 3.
+- `getRecommendations(prefs, { emphasis: 'type' })` ranks only within the requested type (waiving season penalties) — powers the Results page's "Truest to X" toggle on thin paths.
+
+### Conflicting-combo UX (thin paths)
+Some quiz combinations are poorly served by the catalog (e.g. spicy+summer, leather+summer). Three layers handle this — warn, never block:
+1. **Season step hints** (`Quiz.jsx` + `utils/pathSupply.js`): options show "Unusual pairing" / "close matches" hints based on live supply counts for the chosen type.
+2. **Notes step badges** (`NotesPreferences.jsx`): notes absent from the chosen season's pool get a "rare in {season}" badge and an info toast when liked (season-only check on purpose — type pools are too small to flag against).
+3. **Results trade-off banner** (`Results.jsx`): when not all top-3 match the requested type, a banner offers "Best for {season}" vs "Truest to {type}" (second list = engine with `emphasis: 'type'`).
 
 ---
 

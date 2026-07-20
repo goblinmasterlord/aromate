@@ -17,8 +17,13 @@ Threshold Filter → Sort → Top 3 (backfilled if needed) → Honesty Labels
 
 ### Entry Point
 ```javascript
-getRecommendations(preferences) → top 3 perfumes with score (0-100) and matchReasons
+getRecommendations(preferences, options?) → top 3 perfumes with score (0-100) and matchReasons
 ```
+
+`options.emphasis === 'type'` restricts the pool to the requested fragrance
+type and ranks within it, waiving season penalties. Out-of-season picks get an
+honest label ("A true spicy pick, though not a typical summer scent — best
+saved for cooler evenings"). Used by the Results page's thin-path toggle.
 
 Preferences shape (all fields optional):
 ```javascript
@@ -56,10 +61,15 @@ so a perfume's score is a true 0–100 percentage.
 | SEASON | 20 |
 | OCCASION | 20 |
 
-Characteristics (longevity/sillage/intensity) are **not** scored: the quiz
-never asks for them, and scoring them against a fixed default just rewarded
-perfumes with average stats. Perfume `rating` is used only as a sort
-tiebreaker.
+Characteristics (longevity/sillage/intensity) are **not** scored as
+preferences: the quiz never asks for them, and scoring them against a fixed
+default just rewarded perfumes with average stats. Perfume `rating` is used
+only as a sort tiebreaker.
+
+**Wearability guard:** intensity IS used as a season-context penalty —
+summer penalizes intensity ≥ 8 by `(intensity − 7) × 4`, winter penalizes
+intensity ≤ 3 by `(4 − intensity) × 3`. This keeps "beast mode" scents out
+of summer results without asking the user anything.
 
 ---
 

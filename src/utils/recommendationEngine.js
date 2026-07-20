@@ -24,7 +24,10 @@ const RESULT_COUNT = 3;
 const SCORE_THRESHOLD = 20;
 const DISLIKED_BACKFILL_PENALTY = 25;
 
-export const getRecommendations = (preferences = {}) => {
+// options.emphasis === 'type' restricts the pool to the requested fragrance
+// type and ranks within it, accepting out-of-season picks (used by the
+// Results page's "truest to your style" toggle on thin paths).
+export const getRecommendations = (preferences = {}, options = {}) => {
   const merged = {
     gender: preferences.gender || 'unisex',
     type: preferences.type || '',
@@ -36,6 +39,12 @@ export const getRecommendations = (preferences = {}) => {
     }
   };
 
+  const typeEmphasis = options.emphasis === 'type' && merged.type &&
+    perfumes.some(p => p.type === merged.type);
+  const pool = typeEmphasis
+    ? perfumes.filter(p => p.type === merged.type)
+    : perfumes;
+
   const activeWeights = merged.notes.liked.length > 0
     ? WEIGHTS.WITH_NOTES
     : WEIGHTS.WITHOUT_NOTES;
@@ -43,8 +52,8 @@ export const getRecommendations = (preferences = {}) => {
   console.log('[Recommendation Engine] Preferences:', merged,
     '| weights:', merged.notes.liked.length > 0 ? 'WITH_NOTES' : 'WITHOUT_NOTES');
 
-  const scored = perfumes.map(perfume => {
-    const { score, matchReasons } = calculatePerfumeScore(perfume, merged, activeWeights);
+  const scored = pool.map(perfume => {
+    const { score, matchReasons } = calculatePerfumeScore(perfume, merged, activeWeights, { typeEmphasis });
     return { ...perfume, score, matchReasons };
   });
 
@@ -93,18 +102,36 @@ export const getRecommendations = (preferences = {}) => {
   }
 
   // Be honest when a result isn't the fragrance family the user asked for
-  // (this happens on thin paths, e.g. orientals in summer).
-  const final = results.map(p =>
-    merged.type && p.type !== merged.type
-      ? {
+  // (this happens on thin paths, e.g. orientals in summer). In type-emphasis
+  // mode every pick matches the type; instead flag out-of-season picks.
+  const coolSeasons = ['fall', 'winter'];
+  const final = results.map(p => {
+    if (typeEmphasis) {
+      if (merged.season && !p.season.includes(merged.season) && !p.season.includes('all')) {
+        const advice = coolSeasons.includes(merged.season)
+          ? 'save it for warmer days'
+          : 'best saved for cooler evenings';
+        return {
           ...p,
           matchReasons: [
-            `A ${p.type} fragrance rather than ${merged.type} — recommended for its strong match on your other preferences`,
-            ...p.matchReasons.filter(r => !r.startsWith('Matches your preferred'))
+            `A true ${merged.type} pick, though not a typical ${merged.season} scent — ${advice}`,
+            ...p.matchReasons
           ]
-        }
-      : p
-  );
+        };
+      }
+      return p;
+    }
+    if (merged.type && p.type !== merged.type) {
+      return {
+        ...p,
+        matchReasons: [
+          `A ${p.type} fragrance rather than ${merged.type} — recommended for its strong match on your other preferences`,
+          ...p.matchReasons.filter(r => !r.startsWith('Matches your preferred'))
+        ]
+      };
+    }
+    return p;
+  });
 
   console.log('[Recommendation Engine] Results:',
     final.map(r => `${r.name} (${r.score})`).join(', '));
@@ -112,7 +139,7 @@ export const getRecommendations = (preferences = {}) => {
   return final;
 };
 
-const calculatePerfumeScore = (perfume, preferences, weights) => {
+const calculatePerfumeScore = (perfume, preferences, weights, { typeEmphasis = false } = {}) => {
   let score = 0;
   const matchReasons = [];
 
@@ -131,16 +158,28 @@ const calculatePerfumeScore = (perfume, preferences, weights) => {
     add(calculateNotesScore(perfume, preferences.notes.liked, weights.NOTES));
   }
 
-  // Penalties for hard mismatches
+  // Penalties for hard mismatches. In type-emphasis mode the user has
+  // explicitly chosen type over season, so season penalties are waived.
   let penalties = 0;
 
-  if (preferences.season) {
+  if (preferences.season && !typeEmphasis) {
     const oppositeSeasons = { summer: 'winter', winter: 'summer', spring: 'fall', fall: 'spring' };
     if (perfume.season.includes(oppositeSeasons[preferences.season]) &&
         !perfume.season.includes(preferences.season) &&
         !perfume.season.includes('all')) {
       penalties += 15;
     }
+  }
+
+  // Wearability guard: characteristics aren't asked in the quiz, but they
+  // still make some picks impractical — very intense scents are overwhelming
+  // in summer heat, very light ones disappear in winter cold.
+  const intensity = perfume.characteristics?.intensity ?? 5;
+  if (preferences.season === 'summer' && intensity >= 8) {
+    penalties += (intensity - 7) * 4;
+  }
+  if (preferences.season === 'winter' && intensity <= 3) {
+    penalties += (4 - intensity) * 3;
   }
 
   if (preferences.gender !== 'unisex' && perfume.gender !== 'unisex' &&

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getRecommendations } from '../utils/recommendationEngine';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, Clock, Wind, Droplets, 
@@ -32,6 +33,23 @@ const Results = () => {
       navigate('/quiz');
     }
   }, [location.state, navigate]);
+
+  // Thin-path handling: when not every pick matches the requested fragrance
+  // type (e.g. spicy in summer), surface the trade-off explicitly and let the
+  // user flip between season-appropriate compromises and true-to-type picks.
+  const requestedType = answers.type;
+  const sameTypeCount = recommendations.filter(p => p.type === requestedType).length;
+  const isThinPath = Boolean(requestedType) && recommendations.length > 0 &&
+    sameTypeCount < recommendations.length;
+  const [resultView, setResultView] = useState('best');
+  const trueToTypeResults = useMemo(
+    () => (isThinPath ? getRecommendations(answers, { emphasis: 'type' }) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isThinPath]
+  );
+  const displayedResults = resultView === 'type' && trueToTypeResults.length > 0
+    ? trueToTypeResults
+    : recommendations;
 
   // Enhanced preference details with more specific info
   const preferenceDetails = {
@@ -240,12 +258,47 @@ const Results = () => {
           </motion.div>
         </div>
 
+        {/* Thin-path trade-off banner */}
+        {isThinPath && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="-mb-12 mx-auto max-w-3xl p-5 rounded-xl bg-amber-400/5 border border-amber-400/20"
+          >
+            <p className="text-sm text-neutral-300 text-center mb-4">
+              <span className="text-amber-400 font-medium capitalize">{requestedType}</span>
+              {' '}fragrances{answers.season ? ` that suit ${answers.season}` : ''} are rare in our
+              catalog, so some picks lean toward close alternatives. Choose what matters most:
+            </p>
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => setResultView('best')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                  ${resultView === 'best'
+                    ? 'bg-violet-400/15 border border-violet-400/40 text-violet-300'
+                    : 'bg-background-800/50 border border-neutral-800 text-neutral-400 hover:text-white'}`}
+              >
+                {answers.season ? `Best for ${answers.season}` : 'Best overall'}
+              </button>
+              <button
+                onClick={() => setResultView('type')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200
+                  ${resultView === 'type'
+                    ? 'bg-violet-400/15 border border-violet-400/40 text-violet-300'
+                    : 'bg-background-800/50 border border-neutral-800 text-neutral-400 hover:text-white'}`}
+              >
+                Truest to {requestedType}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Recommendations Grid - Now first */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-          {recommendations.map((perfume, index) => (
+          {displayedResults.map((perfume, index) => (
             <div key={perfume.id} className="relative" style={{ zIndex: 10 - index }}>
-              <PerfumeCard 
-                perfume={perfume} 
+              <PerfumeCard
+                perfume={perfume}
                 index={index}
                 userPreferences={answers}
               />

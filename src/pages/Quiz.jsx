@@ -8,6 +8,7 @@ import { quizQuestions } from '../data/quizQuestions.jsx';
 import QuizOption from '../components/quiz/QuizOption';
 import NotesPreferences from '../components/quiz/NotesPreferences';
 import { getRecommendations } from '../utils/recommendationEngine';
+import { typeSeasonCount } from '../utils/pathSupply';
 
 const EMPTY_NOTES = { liked: [], disliked: [] };
 
@@ -29,6 +30,20 @@ const Quiz = () => {
   const currentQuestion = quizQuestions[currentStep];
   const canAdvance = isAnswered(currentQuestion, answers);
   const isLastStep = currentStep === quizQuestions.length - 1;
+
+  // Soft supply hints on the season step: warn (never block) when the
+  // already-chosen type is rare or absent for a season.
+  const currentOptions = (currentQuestion.options || []).map(option => {
+    if (currentQuestion.id !== 'season' || !answers.type) return option;
+    const count = typeSeasonCount(answers.type, option.id);
+    if (count === 0) {
+      return { ...option, hint: `No ${answers.type} scents for this season in our catalog — we'd suggest close matches` };
+    }
+    if (count <= 3) {
+      return { ...option, hint: `Unusual pairing with ${answers.type} — only a few options` };
+    }
+    return option;
+  });
 
   const completeQuiz = async (finalAnswers) => {
     if (isLoading) return;
@@ -167,10 +182,11 @@ const Quiz = () => {
                 <NotesPreferences
                   onChange={handleNotesChange}
                   initialNotes={answers[currentQuestion.id]}
+                  season={answers.season}
                 />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {currentQuestion.options.map((option) => (
+                  {currentOptions.map((option) => (
                     <QuizOption
                       key={option.id}
                       option={option}

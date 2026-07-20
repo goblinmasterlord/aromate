@@ -1745,5 +1745,130 @@ export const perfumes = [
       },
       tags: ["woody", "chypre", "fresh", "confident"],
       rating: 4.4
+    },
+    {
+      id: 72,
+      name: "Terre d'Hermès",
+      brand: "Hermès",
+      type: "spicy",
+      concentration: "Eau de Toilette",
+      gender: "masculine",
+      price: 110.00,
+      size: "100ml",
+      year: 2006,
+      season: ["spring", "summer", "fall"],
+      occasion: ["casual", "work", "outdoor"],
+      notes: {
+        top: ["orange", "grapefruit"],
+        middle: ["black pepper", "geranium"],
+        base: ["vetiver", "cedar", "benzoin"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 6,
+        intensity: 5
+      },
+      tags: ["spicy", "citrus", "earthy", "versatile"],
+      rating: 4.6
+    },
+    {
+      id: 73,
+      name: "Poivre Samarcande",
+      brand: "Hermès",
+      type: "spicy",
+      concentration: "Eau de Toilette",
+      gender: "unisex",
+      price: 200.00,
+      size: "100ml",
+      year: 2004,
+      season: ["spring", "summer", "fall"],
+      occasion: ["casual", "work", "daily"],
+      notes: {
+        top: ["black pepper"],
+        middle: ["cumin", "oakmoss"],
+        base: ["oak", "cedar"]
+      },
+      characteristics: {
+        longevity: 5,
+        sillage: 4,
+        intensity: 4
+      },
+      tags: ["spicy", "peppery", "dry", "refined"],
+      rating: 4.3
+    },
+    {
+      id: 74,
+      name: "Ganymede",
+      brand: "Marc-Antoine Barrois",
+      type: "leather",
+      concentration: "Eau de Parfum",
+      gender: "unisex",
+      price: 210.00,
+      size: "100ml",
+      year: 2019,
+      season: ["spring", "summer", "fall"],
+      occasion: ["casual", "evening", "special"],
+      notes: {
+        top: ["mandarin orange", "saffron"],
+        middle: ["violet", "suede"],
+        base: ["akigalawood", "benzoin"]
+      },
+      characteristics: {
+        longevity: 8,
+        sillage: 7,
+        intensity: 5
+      },
+      tags: ["leather", "suede", "mineral", "modern"],
+      rating: 4.6
+    },
+    {
+      id: 75,
+      name: "Grey Vetiver",
+      brand: "Tom Ford",
+      type: "fresh",
+      concentration: "Eau de Parfum",
+      gender: "masculine",
+      price: 135.00,
+      size: "100ml",
+      year: 2009,
+      season: ["fall", "winter"],
+      occasion: ["work", "casual", "evening"],
+      notes: {
+        top: ["grapefruit", "orange blossom", "sage"],
+        middle: ["nutmeg", "pimento berries"],
+        base: ["vetiver", "oakmoss", "amber wood"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["fresh", "vetiver", "clean", "professional"],
+      rating: 4.4
+    },
+    {
+      id: 76,
+      name: "N°19",
+      brand: "Chanel",
+      type: "fresh",
+      concentration: "Eau de Parfum",
+      gender: "feminine",
+      price: 145.00,
+      size: "100ml",
+      year: 1971,
+      season: ["spring", "fall", "winter"],
+      occasion: ["work", "casual", "special"],
+      notes: {
+        top: ["green notes", "neroli", "bergamot"],
+        middle: ["iris", "rose", "lily of the valley"],
+        base: ["vetiver", "oakmoss", "leather"]
+      },
+      characteristics: {
+        longevity: 7,
+        sillage: 5,
+        intensity: 5
+      },
+      tags: ["fresh", "green", "iris", "elegant"],
+      rating: 4.5
     }
   ];

@@ -24,6 +24,9 @@ const QuizOption = ({ option, isSelected, onSelect, type }) => {
           {option.description && (
             <p className="text-sm text-neutral-400 mt-0.5">{option.description}</p>
           )}
+          {option.hint && (
+            <p className="text-xs text-amber-400/90 mt-1">{option.hint}</p>
+          )}
         </div>
       </div>
     </motion.button>

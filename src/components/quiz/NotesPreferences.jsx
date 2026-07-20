@@ -1,5 +1,5 @@
 // NotesPreference.jsx
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -20,6 +20,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { fragranceNotes } from '../../data/fragranceNotes';
+import { noteAvailableInSeason } from '../../utils/pathSupply';
 
 // Notes that typically clash or create unpleasant combinations.
 // Only labels that actually exist in fragranceNotes.js belong here.
@@ -33,7 +34,7 @@ const noteConflicts = {
   'Incense': ['Coconut', 'Melon']
 };
 
-const NotesPreference = ({ onChange, initialNotes }) => {
+const NotesPreference = ({ onChange, initialNotes, season }) => {
   const [likedNotes, setLikedNotes] = useState(initialNotes?.liked || []);
   const [dislikedNotes, setDislikedNotes] = useState(initialNotes?.disliked || []);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +45,16 @@ const NotesPreference = ({ onChange, initialNotes }) => {
   const resultsRef = useRef(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [conflictWarning, setConflictWarning] = useState('');
+  const [seasonWarning, setSeasonWarning] = useState('');
+
+  // Notes that no perfume wearable in the chosen season contains
+  // (e.g. Oud in summer, Marine Notes in winter). Still selectable —
+  // we warn, we don't block.
+  const rareForSeason = useMemo(() => {
+    if (!season) return new Set();
+    const allLabels = [...new Set(Object.values(fragranceNotes).flat())];
+    return new Set(allLabels.filter(label => !noteAvailableInSeason(label, season)));
+  }, [season]);
 
   // Call onChange whenever notes change
   useEffect(() => {
@@ -115,6 +126,11 @@ const NotesPreference = ({ onChange, initialNotes }) => {
       
       setLikedNotes([...likedNotes, note]);
       setShowLimitWarning(false);
+
+      if (rareForSeason.has(note)) {
+        setSeasonWarning(`${note} is rare in ${season} fragrances — it may not influence your matches much`);
+        setTimeout(() => setSeasonWarning(''), 4000);
+      }
     }
   };
 
@@ -190,6 +206,18 @@ const NotesPreference = ({ onChange, initialNotes }) => {
             >
               <Info className="w-4 h-4" />
               {conflictWarning}
+            </motion.div>
+          )}
+          {seasonWarning && (
+            <motion.div
+              key="season"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-400/10 text-amber-400 text-sm"
+            >
+              <Info className="w-4 h-4" />
+              {seasonWarning}
             </motion.div>
           )}
         </AnimatePresence>
@@ -296,16 +324,21 @@ const NotesPreference = ({ onChange, initialNotes }) => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-lg font-medium
-                      ${likedNotes.includes(note)
-                        ? 'text-violet-400'
-                        : dislikedNotes.includes(note)
-                        ? 'text-neutral-500'
-                        : 'text-white'
-                      }`}
-                    >
-                      {note}
-                    </span>
+                    <div>
+                      <span className={`text-lg font-medium
+                        ${likedNotes.includes(note)
+                          ? 'text-violet-400'
+                          : dislikedNotes.includes(note)
+                          ? 'text-neutral-500'
+                          : 'text-white'
+                        }`}
+                      >
+                        {note}
+                      </span>
+                      {rareForSeason.has(note) && (
+                        <p className="text-xs text-amber-400/80">rare in {season}</p>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleNoteSelect(note)}
